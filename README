@@ -1,0 +1,20 @@
+GoodOD Ontology Evaluator
+
+Copyright (C) 2011 The University of Rostock.
+
+Usage Instructions:
+
+* Get a working maven installation to build the evaluator.
+* Build and install the owlapi-distribution artifact with maven.
+* Run `mvn package' to build and package the evaluator. The corresponding .jar
+  file ist placed in ./target/.
+* Set the GOODOD_REPO_ROOT environment variable (with `setenv'/`export' on *nix
+  or `set' on Win32, for permanently setting it on Windows, please refer to
+  <http://support.microsoft.com/kb/310519>) to the directory containing the
+  GoodOD svn repository.
+* Run the jar file with `java -jar' and two ontologies as the arguments.
+
+License:
+
+The software is made available under the GNU General Public License (GPL),
+version 3  or later (see COPYING).
