@@ -29,14 +29,6 @@ import org.semanticweb.owlapi.model.*;
  */
 public interface Normalizer {
   
-	/**
-	 * Adds a mapping to the normalizer that replaces a specific imports with
-	 * other imports and replaces every occurrence of IRIs from the imported ontology. 
-	 * 
-	 * @param oldToNewIRIMap A map which specifies which import statements will
-	 * be replaced with which.
-	 */
-	void setImportMappings(Map<IRI,IRI>oldToNewIRIMap);
 
 	/**
 	 * Normalizes the named ontology.
