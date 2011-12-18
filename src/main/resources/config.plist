@@ -3,4 +3,9 @@
   ignoredImports = ( "http://purl.org/biotop/biotoplite_group_A_TEST.owl",
                      "http://purl.org/biotop/biotoplite_group_B_TEST.owl" );
   bioTopLiteSource = "sources/biotoplite.owl";
+  groupDirs = {
+    groupA = "Results/GruppeA";
+    groupB = "Results/GruppeB";
+    };
+  testDir = "docs/Testaufgaben";
 }

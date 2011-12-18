@@ -18,21 +18,27 @@
 
 package de.uni_rostock.goodod.owl;
 
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+
 
 public abstract class ComparisonResult
 {
-	private OntologyPair pair;
+	private IRI ontologyA;
+	private IRI ontologyB;
 	private String comparisonMethod;
 	public ComparisonResult(String method, OntologyPair aPair)
 	{
-		pair = aPair;
+		OWLOntology ontA = aPair.getOntologyA();
+		OWLOntology ontB = aPair.getOntologyB();
+		OWLOntologyManager manA = ontA.getOWLOntologyManager();
+		OWLOntologyManager manB = ontB.getOWLOntologyManager();
+		ontologyA = manA.getOntologyDocumentIRI(ontA);
+		ontologyB = manB.getOntologyDocumentIRI(ontB);
 		comparisonMethod = method;
 	}
 	
-	public OntologyPair getOntologyPair()
-	{
-		return pair;
-	}
 	
 	public String getComparisonMethod()
 	{
@@ -45,7 +51,8 @@ public abstract class ComparisonResult
 	
 	public String toString()
 	{
-		return "Ontology Pair: " + pair + '\n' +
+		return "Ontology A: " + ontologyA + '\n' +
+				"Ontology B: " + ontologyB + '\n' +
 				"Compared using: " + comparisonMethod + '\n' +
 				"Similarity (" + getSimilarityType() + "): " + getSimilarity() + '\n';
 	}

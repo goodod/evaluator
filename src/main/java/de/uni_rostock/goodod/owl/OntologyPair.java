@@ -31,16 +31,18 @@ public class OntologyPair {
 	private OWLOntology ontologyA;
 	private OWLOntology ontologyB;
 	
-	public OntologyPair(URI commonBioTop, URI ontA, URI ontB, Set<URI> importsToIgnore) throws OWLOntologyCreationException
+	public OntologyPair(URI commonBioTop, URI ontA, URI ontB, Set<IRI> importsToIgnore) throws OWLOntologyCreationException
 	{	
 		/*
 		 * Create a configuration that lets us ignore (and later remove) the group specific imports. 
 		 */
 		config = new OWLOntologyLoaderConfiguration();
-		for (URI theURI : importsToIgnore)
+		for (IRI theIRI : importsToIgnore)
 		{
-			config = config.addIgnoredImport(IRI.create(theURI));
+			config = config.addIgnoredImport(theIRI);
 		}
+		//FIXME: Some student ontologies have bogus imports. This is not the real way to deal with it
+		config = config.setSilentMissingImportsHandling(true);
 		
 		/*
 		 * Create a mapping for BioTopLite

@@ -25,8 +25,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.configuration.plist.PropertyListConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
 
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
@@ -40,46 +38,39 @@ import de.uni_rostock.goodod.owl.*;
  */
 public class EvaluatorApp 
 {
-	private static PropertyListConfiguration config;
 	
+	private static Configuration config;
 	private static Log logger = LogFactory.getLog(EvaluatorApp.class);
     
 	public static void main( String[] args )
     {
-		Map<String,String>configuration = getConfigMap(args);
-    	String configFile = configuration.get("configFile");
-
+		String repoRoot = null;
+		
+		config = Configuration.getConfiguration(args);
+    
+    	String testFile = config.getString("testDescription");
+    	OntologyTest theTest = null;
     	try
     	{
-    		if (configFile.isEmpty())
-    		{
-    			ClassLoader loader = EvaluatorApp.class.getClassLoader();
-    			config = new PropertyListConfiguration(loader.getResource("config.plist"));
-    		
-    		}
-    		else
-    		{
-    			config = new PropertyListConfiguration(configFile);
-    		}
+    		theTest = new OntologyTest(new File(testFile));
+    		theTest.executeTest();
     	}
-    	catch (ConfigurationException configExc)
+    	catch (Throwable e)
     	{
-    		logger.fatal("Could not load configuration", configExc);
+    		logger.fatal("Fatal error", e);
     		System.exit(1);
     	}
-
-    	String repoRoot = configuration.get("repositoryRoot");
-    	if ((null == repoRoot) || repoRoot.isEmpty())
-    	{
-    		repoRoot = config.getString("repositoryRoot");
-    	}
+    	
+    	logger.info(theTest.toString());
+    	
+    	/*
     	if (null == repoRoot)
     	{
     		repoRoot = "";
     	}
     	File biotopF = new File(repoRoot.concat(File.separator.concat(config.getString("bioTopLiteSource"))));
-    	File ontologyAF = new File(configuration.get("ontologyA"));
-    	File ontologyBF = new File(configuration.get("ontologyB"));
+    	File ontologyAF = new File(config.getString("ontologyA"));
+    	File ontologyBF = new File(config.getString("ontologyB"));
     	
     	if (false == biotopF.canRead())
     	{
@@ -127,9 +118,9 @@ public class EvaluatorApp
     		logger.fatal("Could not normalize ontologies",e);
     		System.exit(1);
     	}
-    	/*
-    	 * First run: Semantic cotopy without/with imports.
-    	 */
+    	
+    	 //First run: Semantic cotopy without/with imports.
+    	 
     	SCComparator comp = new SCComparator(pair, false);
     	ComparisonResult res = comp.compare();
     	logger.info("SCComparison result without imports:" + '\n' + res.toString());
@@ -137,91 +128,16 @@ public class EvaluatorApp
     	res = comp.compare();
     	logger.info("SCComparison result with imports:" + '\n' + res.toString());
     	
-    	/*
-    	 * Second run: Common semantic cotopy without/with imports.
-    	 */
+    	
+    	 // Second run: Common semantic cotopy without/with imports.
+    	
     	comp = new CSCComparator(pair, false);
     	res = comp.compare();
     	logger.info("CSCComparison result without imports:" + '\n' + res.toString());
     	comp = new CSCComparator(pair, true);
     	res = comp.compare();
     	logger.info("CSCComparison result with imports:" + '\n' + res.toString());
-
+	*/
     }
 	
-	
-	private static Map<String,String> getConfigMap(String args[])
-	{
-		String configFile = "";
-    	String ontFileA = "";
-    	String ontFileB = "";
-    	String repoRoot = "";
-    	Map<String,String> cfg = new HashMap<String,String>();
-    	boolean gotConfig = false;
-    	boolean gotOntA = false;
-    	boolean gotOntB = false;
-    	boolean expectConfigFile = false;
-    
-    	/*
-    	 *  We only support the "-c" or "--config=" command-line switch to
-    	 *  determine the location of the configuration file.
-    	 */
-    	for (String arg : args)
-    	{
-    		if (false == gotConfig)
-    		{
-    			if (false == expectConfigFile)
-    			{
-    				if(arg.startsWith("-"))
-    				{
-    					if (arg.endsWith("c"))
-    					{
-    						expectConfigFile = true;
-    						continue;
-    					}
-    				}
-    				else if(arg.startsWith("--config=") && (arg.length() > 9))
-    				{
-    					configFile = arg.substring(9);
-    					gotConfig = true;
-    					continue;
-    				}
-    			}
-    			else if (true == expectConfigFile)
-    			{
-    				if (false == arg.isEmpty())
-    				{
-    					configFile = arg;
-    					gotConfig = true;
-    					continue;
-    				}
-    			}
-    		}
-    		if (false == gotOntA)
-    		{
-    			if (false == arg.isEmpty())
-    			{
-    				ontFileA = arg;
-    				gotOntA = true;
-    				continue;
-    			}
-    		}
-    		if (false == gotOntB)
-    		{
-    			if (false == arg.isEmpty())
-    			{
-    				ontFileB = arg;
-    				gotOntB = true;
-    				continue;
-    			}
-    		}
-    	}
-    	
-    	repoRoot = System.getenv("GOODOD_REPO_ROOT");
-    	cfg.put("configFile", configFile);
-    	cfg.put("ontologyA", ontFileA);
-    	cfg.put("ontologyB", ontFileB);
-    	cfg.put("repositoryRoot", repoRoot);
-		return cfg;
-	}
 }

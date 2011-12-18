@@ -49,14 +49,14 @@ public class SCComparator implements Comparator {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Comparator#compare()
 	 */
-	public ComparisonResult compare() {
+	public FMeasureComparisonResult compare() {
 		return compareClasses(pair.getOntologyA().getClassesInSignature(includeImports));
 	}
 
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Comparator#compare(java.util.Set)
 	 */
-	public ComparisonResult compare(Set<IRI> classIRIs) {
+	public FMeasureComparisonResult compare(Set<IRI> classIRIs) {
 		Set<OWLClass> classes = new HashSet<OWLClass>();
 		for (OWLClass c : pair.getOntologyA().getClassesInSignature(includeImports))
 		{
@@ -73,7 +73,7 @@ public class SCComparator implements Comparator {
 	 * @param classes The classes from ontology A to use for the comparison.
 	 * @return The result of the comparison.
 	 */
-	protected ComparisonResult compareClasses(Set<OWLClass>classes)
+	protected FMeasureComparisonResult compareClasses(Set<OWLClass>classes)
 	{
 		double classCount = classes.size();
 		double precisionAccumulator = 0;
