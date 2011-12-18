@@ -19,10 +19,13 @@ package de.uni_rostock.goodod.evaluator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.FileReader;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,7 +63,7 @@ public class OntologyTest {
 	private Map<IRI,IRI>importMap;
 	private Set<IRI>testIRIs;
 	private Map<URI,Map<URI,FMeasureComparisonResult>> resultMap;
-	
+	private boolean considerImports;
 	private static Log logger = LogFactory.getLog(OntologyTest.class);
 	
 	public OntologyTest(File testDescription) throws FileNotFoundException, IOException, OWLOntologyCreationException, ConfigurationException
@@ -124,6 +127,18 @@ public class OntologyTest {
     	}
 		
 		testIRIs = getIRIsToTest();
+		
+		considerImports = true;
+	}
+	
+	public void setConsiderImports(boolean withImports)
+	{
+		considerImports = withImports;
+	}
+	
+	public boolean getConsiderImports()
+	{
+		return considerImports;
 	}
 	
 	public Set<IRI> getIgnoredImports()
@@ -168,7 +183,7 @@ public class OntologyTest {
     	{
     		logger.fatal("Could not normalize ontologies",e);
     	}
-    	CSCComparator comp = new CSCComparator(pair, true);
+    	CSCComparator comp = new CSCComparator(pair, considerImports);
     	FMeasureComparisonResult res = null;
     	if (null == testIRIs)
     	{
@@ -354,7 +369,7 @@ public class OntologyTest {
 		TestResult AllvsRef = getTestResultAllAgainstReference();
 		TestResult AllvsAll = getTestResultAllAgainstAll();
 		return "Test result report for '" + getTestName() + "' (mean values)" + '\n' +
-				'\t' + '\t' + "Precision" + '\t' + '\t' + "Recall" + '\t'+ '\t' + "F-Measure" + '\n' +
+				'\t' + '\t' + "Precision" + '\t' + '\t' + "Recall" + '\t'+ '\t' + '\t' + "F-Measure" + '\n' +
 				"all vs. model" + '\t' + AllvsRef.toString() + '\n' +
 				"A vs. model" + '\t' + AvsRef.toString() + '\n' +
 				"B vs. model" + '\t' + BvsRef.toString() + '\n' +
@@ -366,5 +381,118 @@ public class OntologyTest {
 	
 	}
 	
+	private String shortNameForURI(URI u)
+	{
 	
+		String s = u.toString();
+		s = s.substring((u.getScheme().length()+1));
+		String repoRoot = globalConfig.getString("repositoryRoot");
+		String testDir = repoRoot + File.separator + globalConfig.getString("testDir");
+		String groupADir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupA");
+		String groupBDir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupB");
+		
+		String marker = "";
+		if (groupAOntologies.contains(u))
+		{
+			marker = "A:";
+		}
+		else if (groupBOntologies.contains(u))
+		{
+			marker = "B:";
+		}
+		
+		if (s.startsWith(testDir))
+		{
+			return s.substring(testDir.length());
+		}
+		else if (s.startsWith(groupADir))
+		{
+			return marker + s.substring(groupADir.length());
+		}
+		else if (s.startsWith(groupBDir))
+		{
+			return marker + s.substring(groupBDir.length());
+		}
+		return s;
+	}
+	
+	private String tableHeader(List<URI> uris)
+	{
+		String header = "\"\",";
+		for (URI u : uris)
+		{
+			String s = '"'+ shortNameForURI(u) + '"';
+			header = header.concat(s).concat(",");
+		}
+		return header.substring(0, (header.length()-1));
+		
+	}
+
+	private enum StatType { PRECISION, RECALL, FMEASURE };
+	
+	private String tableLine(URI u, List<URI>ontologies, StatType type)
+	{
+		String line = '"' + shortNameForURI(u) + '"' + ",";
+		for (URI u2 : ontologies)
+		{
+			FMeasureComparisonResult res = resultMap.get(u).get(u2);
+			double value = 0;
+			if (null != res)
+			{
+				switch (type)
+				{
+				case PRECISION:
+					value = res.getPrecision();
+					break;
+				case RECALL:
+					value = res.getRecall();
+					break;
+				case FMEASURE:
+					value = res.getFMeasure();
+					break;
+				}
+				line = line + '"' + value + '"' + ",";
+			}
+			else
+			{
+				// Empty value:
+				line = line + '"' + '"' + ",";
+			}
+		}
+		
+		return line.substring(0,(line.length()-1));
+	}
+	private void writeTable(FileWriter writer, StatType type) throws IOException
+	{
+		String theTable = "";
+		Set<URI> allOntologies = new HashSet<URI>(25);
+    	allOntologies.addAll(groupAOntologies);
+    	allOntologies.addAll(groupBOntologies);
+    	allOntologies.add(modelOntology);
+    	List<URI> ontologyList = new ArrayList<URI>(allOntologies);
+    	theTable = tableHeader(ontologyList) + '\n';
+    	for (URI u : ontologyList)
+    	{
+    		theTable = theTable + tableLine(u, ontologyList, type) + '\n';
+    	}
+    	writer.write(theTable);
+    	writer.flush();
+	}
+	
+	public void writePrecisionTable(FileWriter w) throws IOException
+	{
+		writeTable(w, StatType.PRECISION);
+	}
+	
+	public void writeRecallTable(FileWriter w) throws IOException
+	{
+		writeTable(w, StatType.RECALL);
+	}
+	
+	public void writeFMeasureTable(FileWriter w) throws IOException
+	{
+		writeTable(w, StatType.FMEASURE);
+	}
+	
+
 }
