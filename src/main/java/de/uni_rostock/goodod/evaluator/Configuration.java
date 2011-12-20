@@ -85,7 +85,20 @@ public class Configuration {
 	
 	public int getInt(String key)
 	{
-		return config.getInt(key);
+		String value = envAndCommandLine.get(key);
+		if (null == value)
+		{
+			return config.getInt(key);
+		}
+		try
+		{
+			return Integer.parseInt(value);
+		}
+		catch (NumberFormatException e)
+		{
+			logger.warn("Could not interpret value '" + value + "' for key '" + key + "' as integer.", e);
+		}
+		return 0;
 	}
 	
 	public SubnodeConfiguration configurationAt(String key)
@@ -112,11 +125,14 @@ public class Configuration {
 	{
 		String configFile = "";
     	String testDescriptionFile = "";
+    	String threadCount = null;
     	String repoRoot = System.getenv("GOODOD_REPO_ROOT");
     	Map<String,String> cfg = new HashMap<String,String>();
     	boolean gotConfig = false;
     	boolean gotDescriptionFile = false;
+    	boolean gotThreadCount = false;
     	boolean expectConfigFile = false;
+    	boolean expectThreadCount = false;
     
     	cfg.put("repositoryRoot", repoRoot);
     	if (null == args)
@@ -124,20 +140,25 @@ public class Configuration {
     		return cfg;
     	}
     	/*
-    	 *  We only support the "-c" or "--config=" command-line switch to
-    	 *  determine the location of the configuration file.
+    	 *  We only support the "-c", "--config=", "-t", "--threadCount=" command-line switches to
+    	 *  determine the location of the configuration file and the number of threads to use.
     	 */
     	for (String arg : args)
     	{
-    		if (false == gotConfig)
+    		if ((false == gotConfig) || (false == gotThreadCount))
     		{
-    			if (false == expectConfigFile)
+    			if ((false == expectConfigFile) && (false == expectThreadCount))
     			{
-    				if(arg.startsWith("-"))
+    				if(arg.startsWith("-") && (2 == arg.length())) 
     				{
     					if (arg.endsWith("c"))
     					{
     						expectConfigFile = true;
+    						continue;
+    					}
+    					else if (arg.endsWith("t"))
+    					{
+    						expectThreadCount = true;
     						continue;
     					}
     				}
@@ -147,6 +168,13 @@ public class Configuration {
     					gotConfig = true;
     					continue;
     				}
+    				else if (arg.startsWith("--threadCount=") && (arg.length() > 14))
+    				{
+    					threadCount = arg.substring(14);
+    					expectThreadCount = true;
+    					continue;
+    					
+    				}
     			}
     			else if (true == expectConfigFile)
     			{
@@ -154,6 +182,17 @@ public class Configuration {
     				{
     					configFile = arg;
     					gotConfig = true;
+    					expectConfigFile = false;
+    					continue;
+    				}
+    			}
+    			else if (true == expectThreadCount)
+    			{
+    				if (false == arg.isEmpty())
+    				{
+    					threadCount = arg;
+    					gotThreadCount = true;
+    					expectThreadCount = false;
     					continue;
     				}
     			}
@@ -173,6 +212,10 @@ public class Configuration {
     	
     	cfg.put("configFile", configFile);
     	cfg.put("testDescription", testDescriptionFile);
+    	if (gotThreadCount)
+    	{
+    		cfg.put("threadCount", threadCount);
+    	}
 
     	
 		return cfg;

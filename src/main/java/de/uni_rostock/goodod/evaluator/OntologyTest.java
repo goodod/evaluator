@@ -170,7 +170,7 @@ public class OntologyTest {
     			 *  Working with the ontologies is resource intensive. We want
     			 *  to handle more than one at a time, especially on multicore
     			 *  machines, but neigher starving ourselves from I/O nor
-    			 *  generating massive memory churn is very smart.
+    			 *  generating massive cache or memory churn is very smart.
     			 */
     			int waitCount = 0;
     			while (inProgressCount > threadCount)
@@ -178,7 +178,10 @@ public class OntologyTest {
     				if (0 == ++waitCount % 8 )
     				{
     					
-    					// thight loop a few times, then yield in order to let the other threads finish.
+    					/* 
+    					 * Thight loop a few times, then yield in order to let
+    					 * the other threads finish.
+    					 */
     					Thread.yield();
     				}
     			}
