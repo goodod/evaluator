@@ -83,6 +83,11 @@ public class Configuration {
 
 	}
 	
+	public int getInt(String key)
+	{
+		return config.getInt(key);
+	}
+	
 	public SubnodeConfiguration configurationAt(String key)
 	{
 		return config.configurationAt(key);

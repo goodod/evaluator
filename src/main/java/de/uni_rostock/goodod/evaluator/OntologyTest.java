@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.configuration.plist.*;
 import org.apache.commons.configuration.AbstractHierarchicalFileConfiguration;
@@ -53,6 +55,7 @@ import de.uni_rostock.goodod.owl.*;
  */
 public class OntologyTest {
 
+	private static final int threadCount = Configuration.getConfiguration().getInt("threadCount");
 	private Configuration globalConfig;
 	private AbstractHierarchicalFileConfiguration testConfig;
 	private URI rawOntology;
@@ -65,7 +68,7 @@ public class OntologyTest {
 	private Map<URI,Map<URI,FMeasureComparisonResult>> resultMap;
 	private boolean considerImports;
 	private static Log logger = LogFactory.getLog(OntologyTest.class);
-	
+	private int inProgressCount;
 	public OntologyTest(File testDescription) throws FileNotFoundException, IOException, OWLOntologyCreationException, ConfigurationException
 	{
 		
@@ -151,8 +154,9 @@ public class OntologyTest {
 
 		
     	
-    	
+		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     	Set<URI> allOntologies = new HashSet<URI>(25);
+    	OntologyCache cache = new OntologyCache(bioTopLiteURI, getIgnoredImports());
     	allOntologies.addAll(groupAOntologies);
     	allOntologies.addAll(groupBOntologies);
     	allOntologies.add(modelOntology);
@@ -162,44 +166,98 @@ public class OntologyTest {
     	{
     		for (URI u2 : allOntologies)
     		{
-    			OntologyPair p = new OntologyPair(bioTopLiteURI, u1, u2, getIgnoredImports());
-    			runComparison(u1, u2, p);
+    			/*
+    			 *  Working with the ontologies is resource intensive. We want
+    			 *  to handle more than one at a time, especially on multicore
+    			 *  machines, but neigher starving ourselves from I/O nor
+    			 *  generating massive memory churn is very smart.
+    			 */
+    			int waitCount = 0;
+    			while (inProgressCount > threadCount)
+    			{
+    				if (0 == ++waitCount % 8 )
+    				{
+    					
+    					// thight loop a few times, then yield in order to let the other threads finish.
+    					Thread.yield();
+    				}
+    			}
+    			comparisonStarted();
+    			OntologyPair p = new OntologyPair(cache, u1, u2);
+    			executor.execute(new ComparisonRunner(u1, u2, p));
     		}
  
     	}
+    	executor.shutdown();
+    	while (false == executor.isTerminated()) {
+    			// wait until we're done.
+		}
     	logger.info("Comparisons on '" + getTestName() + "' completed.");
 	}
 	
-	private void runComparison(URI o1, URI o2, OntologyPair pair)
+	private class ComparisonRunner implements Runnable
 	{
-		BasicImportingNormalizer norm = new BasicImportingNormalizer(pair.getLoaderConfiguration());
-    	norm.setImportMappings(importMap);
+		private URI o1;
+		private URI o2;
+		private OntologyPair pair;
+		
+		ComparisonRunner(URI ont1, URI ont2, OntologyPair thePair)
+		{
+			o1 = ont1;
+			o2 = ont2;
+			pair = thePair;
+		}
+	
+		public void run()
+		{
+			
+			BasicImportingNormalizer norm = new BasicImportingNormalizer(pair.getLoaderConfiguration());
+    		norm.setImportMappings(importMap);
     	
-    	try
-    	{
-    		pair.normalizeWithNormalizer(norm);
-    	}
-    	catch (OWLOntologyCreationException e)
-    	{
-    		logger.fatal("Could not normalize ontologies",e);
-    	}
-    	CSCComparator comp = new CSCComparator(pair, considerImports);
-    	FMeasureComparisonResult res = null;
-    	if (null == testIRIs)
-    	{
-    		res = comp.compare();
-    	}
-    	else
-    	{
-    		res = comp.compare(testIRIs);
-    	}
+    		try
+    		{
+    			pair.normalizeWithNormalizer(norm);
+    		}
+    		catch (OWLOntologyCreationException e)
+    		{
+    			logger.fatal("Could not normalize ontologies",e);
+    		}
+    		CSCComparator comp = new CSCComparator(pair, considerImports);
+    		FMeasureComparisonResult res = null;
+    		if (null == testIRIs)
+    		{
+    			res = comp.compare();
+    		}
+    		else
+    		{
+    			res = comp.compare(testIRIs);
+    		}
+    	
+    		pushResult(o1, o2, res);
+    		pair = null;
+    		comparisonDone();
+		}
+	}
+	
+	
+	private synchronized void comparisonStarted()
+	{
+		inProgressCount++;
+	}
+	
+	private synchronized void comparisonDone()
+	{
+		inProgressCount--;
+	}
+	
+	private synchronized void pushResult(URI o1, URI o2, FMeasureComparisonResult res)
+	{
     	Map<URI,FMeasureComparisonResult> innerMap = resultMap.get(o1);
     	if (null == innerMap)
     	{
     		innerMap = new HashMap<URI,FMeasureComparisonResult>(25);
     		resultMap.put(o1, innerMap);
     	}
-    	//logger.info("Got comparison result:" + '\n' + res.toString());
     	innerMap.put(o2, res);
 	}
 	

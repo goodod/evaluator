@@ -20,53 +20,22 @@ package de.uni_rostock.goodod.owl;
 
 import java.net.URI;
 import java.util.Set;
-import java.io.File;
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.io.*;
+
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.SimpleIRIMapper;
+
 
 public class OntologyPair {
-	private OWLOntologyLoaderConfiguration config;
+	private OntologyCache cache;
 	private OWLOntology ontologyA;
 	private OWLOntology ontologyB;
 	
-	public OntologyPair(URI commonBioTop, URI ontA, URI ontB, Set<IRI> importsToIgnore) throws OWLOntologyCreationException
+	public OntologyPair(OntologyCache theCache, URI ontA, URI ontB) throws OWLOntologyCreationException
 	{	
-		/*
-		 * Create a configuration that lets us ignore (and later remove) the group specific imports. 
-		 */
-		config = new OWLOntologyLoaderConfiguration();
-		for (IRI theIRI : importsToIgnore)
-		{
-			config = config.addIgnoredImport(theIRI);
-		}
-		//FIXME: Some student ontologies have bogus imports. This is not the real way to deal with it
-		config = config.setSilentMissingImportsHandling(true);
-		
-		/*
-		 * Create a mapping for BioTopLite
-		 */
-		SimpleIRIMapper bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(commonBioTop));
-		
-		// Create the managers.
-		OWLOntologyManager managerA = OWLManager.createOWLOntologyManager();
-		OWLOntologyManager managerB = OWLManager.createOWLOntologyManager();
-		/*
-		 * Install a mapping to BioTopLite into each manager. /
-		 */
-		managerA.addIRIMapper(bioTopLiteMapper);
-		managerB.addIRIMapper(bioTopLiteMapper);
-		
-		/*
-		 * Now load the ontologies.
-		 */
-		FileDocumentSource sourceA = new FileDocumentSource(new File(ontA));
-		FileDocumentSource sourceB = new FileDocumentSource(new File(ontB));
+		cache = theCache;
 		try
 		{
-			ontologyA = managerA.loadOntologyFromOntologyDocument(sourceA, config);
-			ontologyB = managerB.loadOntologyFromOntologyDocument(sourceB, config);
+			ontologyA = cache.getOntologyAtURI(ontA);
+			ontologyB = cache.getOntologyAtURI(ontB);
 		}
 		catch (OWLOntologyCreationException exception)
 		{
@@ -85,7 +54,7 @@ public class OntologyPair {
 	
 	public OWLOntologyLoaderConfiguration getLoaderConfiguration()
 	{
-		return config;
+		return cache.getOntologyLoderConfiguration();
 	}
 	
 	public void normalizeWithNormalizer(Normalizer normalizer) throws OWLOntologyCreationException

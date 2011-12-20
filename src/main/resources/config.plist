@@ -8,4 +8,5 @@
     groupB = "Results/GruppeB";
     };
   testDir = "docs/Testaufgaben";
+  threadCount = 4;
 }
