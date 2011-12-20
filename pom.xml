@@ -9,6 +9,21 @@
 
   <name>GoodOD Ontology Evaluator</name>
 
+
+  <organization>
+    <name>University of Rostock</name>
+    <url>http://www.iph.uni-rostock.de</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>thebeing</id>
+      <name>Niels Grewe</name>
+      <email>niels.grewe@uni-rostock.de</email>
+      <timezone>2</timezone>
+    </developer>
+  </developers>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -34,14 +49,15 @@
   	     <groupId>org.apache.maven.plugins</groupId>
          <artifactId>maven-assembly-plugin</artifactId>
          <configuration>
-            <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-            </descriptorRefs>
+            <descriptors>
+                <descriptor>src/main/assembly/eval-assembly.xml</descriptor>
+            </descriptors>
                     <archive>
                         <manifest>
                             <mainClass>de.uni_rostock.goodod.evaluator.EvaluatorApp</mainClass>
                             <addClasspath>true</addClasspath>
-                        </manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+			</manifest>
                     </archive>
          </configuration>
          <executions>

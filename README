@@ -12,7 +12,7 @@ Usage Instructions:
   or `set' on Win32, for permanently setting it on Windows, please refer to
   <http://support.microsoft.com/kb/310519>) to the directory containing the
   GoodOD svn repository.
-* Run the jar file with `java -jar' and two ontologies as the arguments.
+* Run the jar file with `java -jar' and the test description plist as an argument.
 
 License:
 
