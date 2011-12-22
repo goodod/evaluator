@@ -83,7 +83,7 @@ public class OntologyCache {
 		manager.addIRIMapper(bioTopLiteMapper);
 		FileDocumentSource source = new FileDocumentSource(new File(u));
 		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(source, config);
-		logger.info("Loading and normalizing ontology from " + u.toString() + ".");
+		logger.debug("Loading and normalizing ontology from " + u.toString() + ".");
 		if (null != normalizer)
 		{
 			normalizer.normalize(ontology);
