@@ -54,7 +54,7 @@ public class OntologyPair {
 	
 	public OWLOntologyLoaderConfiguration getLoaderConfiguration()
 	{
-		return cache.getOntologyLoderConfiguration();
+		return cache.getOntologyLoaderConfiguration();
 	}
 	
 	public void normalizeWithNormalizer(Normalizer normalizer) throws OWLOntologyCreationException

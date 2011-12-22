@@ -17,10 +17,14 @@
  */
 package de.uni_rostock.goodod.owl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
+
+
 
 import java.io.File;
 import java.net.URI;
@@ -37,6 +41,8 @@ public class OntologyCache {
 	private final OWLOntologyLoaderConfiguration config;
 	private final SimpleIRIMapper bioTopLiteMapper;
 	private final Map<URI,OWLOntology> ontologies;
+	private static Log logger = LogFactory.getLog(OntologyCache.class);
+	private Normalizer normalizer;
 	
 	public OntologyCache(URI commonBioTopLiteURI, Set<IRI>importsToIgnore)
 	{
@@ -45,7 +51,6 @@ public class OntologyCache {
 		{
 			interimConfig = interimConfig.addIgnoredImport(theIRI);
 		}
-		//FIXME: Some student ontologies have bogus imports. This is not the real way to deal with it
 		config = interimConfig.setSilentMissingImportsHandling(true);
 		bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(commonBioTopLiteURI));
 	
@@ -78,11 +83,27 @@ public class OntologyCache {
 		manager.addIRIMapper(bioTopLiteMapper);
 		FileDocumentSource source = new FileDocumentSource(new File(u));
 		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(source, config);
+		logger.info("Loading and normalizing ontology from " + u.toString() + ".");
+		if (null != normalizer)
+		{
+			normalizer.normalize(ontology);
+		}
 		ontologies.put(u,ontology);
 		return ontology;
 	}
 	
-	public OWLOntologyLoaderConfiguration getOntologyLoderConfiguration()
+	public void setNormalizer(Normalizer n)
+	{
+		normalizer = n;
+		
+	}
+	
+	public Normalizer getNormalizer()
+	{
+		return normalizer;
+	}
+	
+	public OWLOntologyLoaderConfiguration getOntologyLoaderConfiguration()
 	{
 		return config;
 	}

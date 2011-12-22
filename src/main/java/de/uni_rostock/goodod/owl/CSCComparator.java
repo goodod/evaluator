@@ -47,23 +47,18 @@ public class CSCComparator extends SCComparator {
 	 */
 	private Set<OWLClass> commonSemanticCotopy(OWLClass c, OWLOntology ontA, OWLOntology ontB)
 	{
-		Set<OWLClassExpression> expressions = c.getSubClasses(ontA);
-		expressions.addAll(c.getSuperClasses(ontA));
 		
 		
-		/*
-		 *  Since we got a set of class expressions back, we prune so that it
-		 *  only contains asserted classes, for which we can check IRI equality.
-		 */
+		Set<OWLClass> candidates = transitiveSuperClasses(c, ontA);
+		candidates.addAll(transitiveSubClasses(c, ontB));
+		
 		Set<OWLClass> extract = new HashSet<OWLClass>();
-		for (OWLClassExpression ce : expressions)
+		for (OWLClass candidate : candidates)
 		{
-			if (ce instanceof OWLClass)
+		
+			if (null != findClass(candidate, ontB))
 			{
-				if (null != findClass(ce.asOWLClass(), ontB))
-				{
-					extract.add(ce.asOWLClass());
-				}
+				extract.add(candidate);
 			}
 		}
 		/*

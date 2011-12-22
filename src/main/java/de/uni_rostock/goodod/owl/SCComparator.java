@@ -17,6 +17,7 @@
  */
 package de.uni_rostock.goodod.owl;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -98,6 +99,34 @@ public class SCComparator implements Comparator {
 		return "Semantic Cotopy Comparison";
 	}
 	
+	protected Set<OWLClass>transitiveSubClasses(OWLClass c, OWLOntology o)
+	{
+		Set<OWLOntology> ontologies = null;
+		if (includeImports)
+		{
+			ontologies = o.getImportsClosure();
+		}
+		else
+		{
+			ontologies = Collections.singleton(o);
+		}
+		return new SubClassCollector(c, ontologies).collect();
+	}
+	
+	protected Set<OWLClass>transitiveSuperClasses(OWLClass c, OWLOntology o)
+	{
+		Set<OWLOntology> ontologies = null;
+		if (includeImports)
+		{
+			ontologies = o.getImportsClosure();
+		}
+		else
+		{
+			ontologies = Collections.singleton(o);
+		}
+		return new SuperClassCollector(c, ontologies).collect();
+	}
+	
 	/**
 	 * Computes a characteristic extract from the ontology, consisting of all
 	 * sub- and superclasses of the given class.
@@ -108,22 +137,11 @@ public class SCComparator implements Comparator {
 	 */
 	private Set<OWLClass> semanticCotopy(OWLClass c, OWLOntology o)
 	{
-		Set<OWLClassExpression> expressions = c.getSubClasses(o);
-		expressions.addAll(c.getSuperClasses(o));
-		
-		
-		/*
-		 *  Since we got a set of class expressions back, we prune so that it
-		 *  only contains asserted classes, for which we can check IRI equality.
-		 */
 		Set<OWLClass> extract = new HashSet<OWLClass>();
-		for (OWLClassExpression ce : expressions)
-		{
-			if (ce instanceof OWLClass)
-			{
-				extract.add(ce.asOWLClass());
-			}
-		}
+		
+		extract.addAll(transitiveSuperClasses(c, o));
+		extract.addAll(transitiveSubClasses(c, o));
+		
 		/*
 		 *  The class itself belongs to the extract as well and prevents us
 		 *  from doing divisions by zero.

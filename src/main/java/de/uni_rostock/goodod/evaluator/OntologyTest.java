@@ -55,7 +55,7 @@ import de.uni_rostock.goodod.owl.*;
  */
 public class OntologyTest {
 
-	private static final int threadCount = Configuration.getConfiguration().getInt("threadCount");
+	private final int threadCount;
 	private Configuration globalConfig;
 	private AbstractHierarchicalFileConfiguration testConfig;
 	private URI rawOntology;
@@ -74,6 +74,7 @@ public class OntologyTest {
 		
 		// Get a reference to the global configuration:
 		globalConfig = Configuration.getConfiguration();
+		threadCount = globalConfig.getInt("threadCount");
 		
 		// Check whether we are loading an XML property list or a plain on for the test.
 		if (isXMLConfig(testDescription))
@@ -157,6 +158,19 @@ public class OntologyTest {
 		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     	Set<URI> allOntologies = new HashSet<URI>(25);
     	OntologyCache cache = new OntologyCache(bioTopLiteURI, getIgnoredImports());
+    	Normalizer importer = new BasicImportingNormalizer(cache.getOntologyLoaderConfiguration());
+		((BasicImportingNormalizer)importer).setImportMappings(importMap);
+		Normalizer namer = new ClassExpressionNamingNormalizer(null);
+		Normalizer subsumer = new SubsumptionMaterializationNormalizer();
+		List<Normalizer> normalizers = new ArrayList<Normalizer>(3);
+		normalizers.add(importer);
+		normalizers.add(namer);
+		normalizers.add(subsumer);
+		NormalizerChain chain = new NormalizerChain(normalizers);
+		cache.setNormalizer(chain);
+		
+    	
+    	
     	allOntologies.addAll(groupAOntologies);
     	allOntologies.addAll(groupBOntologies);
     	allOntologies.add(modelOntology);
@@ -214,17 +228,6 @@ public class OntologyTest {
 		public void run()
 		{
 			
-			BasicImportingNormalizer norm = new BasicImportingNormalizer(pair.getLoaderConfiguration());
-    		norm.setImportMappings(importMap);
-    	
-    		try
-    		{
-    			pair.normalizeWithNormalizer(norm);
-    		}
-    		catch (OWLOntologyCreationException e)
-    		{
-    			logger.fatal("Could not normalize ontologies",e);
-    		}
     		CSCComparator comp = new CSCComparator(pair, considerImports);
     		FMeasureComparisonResult res = null;
     		if (null == testIRIs)
