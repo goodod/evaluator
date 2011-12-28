@@ -31,9 +31,9 @@ import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 /**
  * Implements part of the normalization algorithm described in Vrandečić/Sure
- * 2007. It will create named classes for all complex class expressoins used in
+ * 2007. It will create named classes for all complex class expressions used in
  * subclassOf and equivalentClasses axioms. This normalizer is usually only
- * useful in conjunction with the Subsumption materialization normalizer.
+ * useful in conjunction with the subsumption materialization normalizer.
  * 
  * @author Niels Grewe <niels.grewe@uni-rostock.de>
  * 
