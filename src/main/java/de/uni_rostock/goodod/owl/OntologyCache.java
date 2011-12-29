@@ -166,6 +166,19 @@ public class OntologyCache {
 	{
 		return config;
 	}
+	
+	@Override
+	public void finalize() throws Throwable
+	{
+		try
+		{
+			executor.shutdownNow();
+		}
+		finally
+		{
+			super.finalize();
+		}
+	}
 }
 
 
