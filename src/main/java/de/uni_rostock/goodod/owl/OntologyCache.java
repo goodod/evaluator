@@ -140,7 +140,7 @@ public class OntologyCache {
 						}
 						catch (OWLOntologyCreationException e)
 						{
-							throw  new ExecutionException(e);
+							throw new ExecutionException(e);
 						}
 						putOntologyAtURI(u, ontology);
 						return ontology;

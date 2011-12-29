@@ -212,6 +212,36 @@ public class OntologyTest {
     			// wait until we're done.
 		}
     	logger.info("Comparisons on '" + getTestName() + "' completed.");
+    	writeNormalizedOntologiesTo(allOntologies, cache, new File(System.getProperty("java.io.tmpdir")));
+	}
+	
+	private void writeNormalizedOntologiesTo(Set<URI>URIs, OntologyCache cache, File directory)
+	{
+		if ((false == directory.isDirectory()) || (false == directory.canWrite()))
+		{
+			logger.warn("Cannot write to directory '" + directory + "'.");
+			return;
+		}
+		logger.info("Writing normalized ontologies to" + directory);
+		for (URI u : URIs)
+		{
+			try
+			{
+				writeNormalizedOntologyTo(u, cache.getOntologyAtURI(u), directory);
+			}
+			catch (Throwable e)
+			{
+				logger.warn("Error writing ontology.", e);
+			}
+		}
+	}
+	
+	private void writeNormalizedOntologyTo(URI u, OWLOntology ont, File directory) throws OWLOntologyStorageException
+	{
+		int fileNameIndex = u.getPath().lastIndexOf(File.separator);
+		String name = "Normalized-" + u.getPath().substring(fileNameIndex);
+		File file = new File(directory.getAbsolutePath() + name);
+		ont.getOWLOntologyManager().saveOntology(ont, IRI.create(file.toURI()));
 	}
 	
 	private class ComparisonRunner implements Runnable
