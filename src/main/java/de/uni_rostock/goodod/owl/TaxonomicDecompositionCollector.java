@@ -73,6 +73,7 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 			 * visit need to modify it.
 			 */
 			newQueue.putAll(queueMap);
+			queueMap.clear();
 			for (Map.Entry<Stack<OWLClassExpression>,Set<OWLClassExpression>> e: newQueue.entrySet() )
 			{
 				// Set the currently active stack:

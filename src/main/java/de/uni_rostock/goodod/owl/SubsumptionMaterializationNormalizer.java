@@ -30,7 +30,12 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.ConsoleProgressMonitor;
+import org.semanticweb.owlapi.reasoner.InferenceType;
+import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 import org.semanticweb.HermiT.Configuration;
+import org.semanticweb.HermiT.Configuration.ExistentialStrategyType;
+import org.semanticweb.HermiT.Configuration.TableauMonitorType;
 import org.semanticweb.HermiT.Reasoner;
 
 
@@ -81,7 +86,7 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 		
 		logger.debug("Classifying with reasoner.");
 		// Let the reasoner do the classification
-		reasoner.classifyClasses();
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 		
 		
 		// Find all entailed subsumptions
@@ -104,6 +109,10 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 		factory = manager.getOWLDataFactory();
 		Configuration reasonerConfig = new Configuration();
 		reasonerConfig.throwInconsistentOntologyException = false;
+		ReasonerProgressMonitor monitor = new ConsoleProgressMonitor();
+		reasonerConfig.existentialStrategyType = ExistentialStrategyType.INDIVIDUAL_REUSE;
+		reasonerConfig.reasonerProgressMonitor = monitor;
+		reasonerConfig.tableauMonitorType = TableauMonitorType.NONE;
 		//reasonerConfig.individualTaskTimeout = 10000;
 		reasoner = new Reasoner(reasonerConfig, ontology);
 	}

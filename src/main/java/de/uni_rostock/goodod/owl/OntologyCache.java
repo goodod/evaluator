@@ -24,6 +24,8 @@ import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
+import de.uni_rostock.goodod.evaluator.Configuration;
+
 
 
 import java.io.File;
@@ -31,6 +33,11 @@ import java.net.URI;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author Niels Grewe <niels.grewe@uni-rostock.de>
@@ -38,14 +45,20 @@ import java.util.HashMap;
  */
 public class OntologyCache {
 
+	private final int threadCount;
+	private final ExecutorService executor;
 	private final OWLOntologyLoaderConfiguration config;
 	private final SimpleIRIMapper bioTopLiteMapper;
 	private final Map<URI,OWLOntology> ontologies;
+	private final Map<URI,FutureTask<OWLOntology>> futures;
 	private static Log logger = LogFactory.getLog(OntologyCache.class);
 	private Normalizer normalizer;
 	
 	public OntologyCache(URI commonBioTopLiteURI, Set<IRI>importsToIgnore)
 	{
+
+		threadCount = Configuration.getConfiguration().getInt("threadCount");
+		executor = Executors.newFixedThreadPool(threadCount);
 		OWLOntologyLoaderConfiguration interimConfig = new OWLOntologyLoaderConfiguration();
 		for (IRI theIRI : importsToIgnore)
 		{
@@ -55,18 +68,39 @@ public class OntologyCache {
 		bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(commonBioTopLiteURI));
 	
 		ontologies = new HashMap<URI,OWLOntology>(24);
+		futures = new HashMap<URI,FutureTask<OWLOntology>>(24);
 	}
 	
-	public synchronized OWLOntology getOntologyAtURI(URI theURI) throws OWLOntologyCreationException
+	public OWLOntology getOntologyAtURI(URI theURI) throws OWLOntologyCreationException
 	{
-		OWLOntology ontology = ontologies.get(theURI);
+		OWLOntology ontology = getOldOntologyAtURI(theURI);
 		if (null == ontology)
 		{
-			ontology = getNewOntologyAtURI(theURI);
+			FutureTask<OWLOntology>ontologyFuture = getOntologyFutureAtURI(theURI);
+			try
+			{
+				ontology = ontologyFuture.get();
+			}
+			catch (Throwable e)
+			{
+				logger.warn("Could not load ontology", e);
+			}
 		}
 		return ontology;
 	}
 	
+	private synchronized void putOntologyAtURI(URI u, OWLOntology ontology)
+	{
+		ontologies.put(u, ontology);
+		if (futures.containsKey(u))
+		{
+			futures.remove(u);
+		}
+	}
+	private synchronized OWLOntology getOldOntologyAtURI(URI theURI) throws OWLOntologyCreationException
+	{
+		return ontologies.get(theURI);
+	}
 	public synchronized void removeOntologyAtURI(URI u)
 	{
 		ontologies.remove(u);
@@ -77,19 +111,44 @@ public class OntologyCache {
 		ontologies.clear();
 	}
 	
-	private OWLOntology getNewOntologyAtURI(URI u) throws OWLOntologyCreationException
+	private synchronized FutureTask<OWLOntology> getOntologyFutureAtURI(final URI u) throws OWLOntologyCreationException
 	{
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		manager.addIRIMapper(bioTopLiteMapper);
-		FileDocumentSource source = new FileDocumentSource(new File(u));
-		OWLOntology ontology = manager.loadOntologyFromOntologyDocument(source, config);
-		logger.debug("Loading and normalizing ontology from " + u.toString() + ".");
-		if (null != normalizer)
+		FutureTask<OWLOntology> future = null;
+		
+		future = futures.get(u);
+		if (null != future)
 		{
-			normalizer.normalize(ontology);
+			return future;
 		}
-		ontologies.put(u,ontology);
-		return ontology;
+		future = new FutureTask<OWLOntology>(new Callable<OWLOntology>()
+				{
+					public OWLOntology call() throws ExecutionException
+					{
+						OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+						manager.addIRIMapper(bioTopLiteMapper);
+						FileDocumentSource source = new FileDocumentSource(new File(u));
+						OWLOntology ontology;
+						try 
+						{
+							ontology = manager.loadOntologyFromOntologyDocument(source, config);
+						
+							logger.info("Loading and normalizing ontology from " + u.toString() + ".");
+							if (null != normalizer)
+							{
+								normalizer.normalize(ontology);
+							}
+						}
+						catch (OWLOntologyCreationException e)
+						{
+							throw  new ExecutionException(e);
+						}
+						putOntologyAtURI(u, ontology);
+						return ontology;
+					}});
+		futures.put(u, future);
+		executor.execute(future);
+		
+		return future;
 	}
 	
 	public void setNormalizer(Normalizer n)

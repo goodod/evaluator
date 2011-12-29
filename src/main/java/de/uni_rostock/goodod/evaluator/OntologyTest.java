@@ -160,11 +160,13 @@ public class OntologyTest {
     	OntologyCache cache = new OntologyCache(bioTopLiteURI, getIgnoredImports());
     	Normalizer importer = new BasicImportingNormalizer(cache.getOntologyLoaderConfiguration());
 		((BasicImportingNormalizer)importer).setImportMappings(importMap);
-		Normalizer namer = new ClassExpressionNamingNormalizer(null);
+		Normalizer namer = new ClassExpressionNamingNormalizer();
+		Normalizer decomposer = new TaxonomicDecompositionNormalizer();
 		Normalizer subsumer = new SubsumptionMaterializationNormalizer();
 		List<Normalizer> normalizers = new ArrayList<Normalizer>(3);
 		normalizers.add(importer);
 		normalizers.add(namer);
+		normalizers.add(decomposer);
 		normalizers.add(subsumer);
 		NormalizerChain chain = new NormalizerChain(normalizers);
 		cache.setNormalizer(chain);
