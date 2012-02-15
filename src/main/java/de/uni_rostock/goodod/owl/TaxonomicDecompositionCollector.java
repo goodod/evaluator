@@ -80,13 +80,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 				activeStack = e.getKey();
 				for (OWLClassExpression expr : e.getValue())
 				{
-					/*
-					 *  Analyse the subexpressions at present stack depth.
-					 *  Subexpression evaluation will either refill the queue
-					 *  or (if they are terminal) unwind the present stack,
-					 *  placing the result in the decomposition set.
-					 */
-					expr.accept(this);
 					if (0 == activeStack.size())
 					{
 						/*
@@ -104,12 +97,19 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 						 */
 						decompositionSet.add(expr);
 					}
+					/*
+					 *  Analyse the subexpressions at present stack depth.
+					 *  Subexpression evaluation will either refill the queue
+					 *  or (if they are terminal) unwind the present stack,
+					 *  placing the result in the decomposition set.
+					 */
+					expr.accept(this);
 				}
 				
 			}
 			newQueue.clear();
 		}
-		
+		decompositionSet.add(sourceExpression);
 		return decompositionSet;
 	}
 	
@@ -342,11 +342,18 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	{
 		OWLClassExpression ancestor = null;
 		OWLClassExpression descendant = terminal;
-		while (0 < stack.size())
+		/*
+		 * We cannot pop the stack because subsequenent iterations of the
+		 * decomposition loop might still need it. So we make a copy.
+		 */
+		@SuppressWarnings("unchecked")
+		Stack<OWLClassExpression> stackClone = (Stack<OWLClassExpression>) stack.clone();
+		while (0 < stackClone.size())
 		{
-			ancestor = stack.pop();
+			ancestor = stackClone.pop();
 			descendant = recreateClassExpression(ancestor, descendant);
 		}
+		stackClone = null;
 		decompositionSet.add(descendant);
 	}
 	
