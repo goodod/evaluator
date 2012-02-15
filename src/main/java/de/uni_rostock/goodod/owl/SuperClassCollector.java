@@ -41,5 +41,15 @@ public final class SuperClassCollector extends SubOrSuperClassCollector {
 	protected Set<OWLClassExpression> getExpressionsStartingFrom(OWLClass c) {
 		return c.getSuperClasses(ontologies);
 	}
-
+	/**
+	 * Returns all superclasses of a given class in a set of ontologies.
+	 * @param c The class from which to start collecting.
+	 * @param o The set of ontologies from which to collect.
+	 * @return The (potentially indirect) superclasses of c.
+	 */
+	public static Set<OWLClass> collect(OWLClass c, Set<OWLOntology> o)
+	{
+		SuperClassCollector col = new SuperClassCollector(c, o);
+		return col.collect();
+	}
 }

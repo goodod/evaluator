@@ -42,4 +42,15 @@ public final class SubClassCollector extends SubOrSuperClassCollector {
 		return c.getSubClasses(ontologies);
 	}
 
+	/**
+	 * Returns all subclasses of a given class in a set of ontologies.
+	 * @param c The class from which to start collecting.
+	 * @param o The set of ontologies from which to collect.
+	 * @return The (potentially indirect) subclasses of c.
+	 */
+	public static Set<OWLClass> collect(OWLClass c, Set<OWLOntology> o)
+	{
+		SubClassCollector col = new SubClassCollector(c, o);
+		return col.collect();
+	}
 }

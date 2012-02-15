@@ -79,4 +79,5 @@ public abstract class SubOrSuperClassCollector {
 	return targetClasses;
 	}
 	
+	
 }

@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory; 
 
 import de.uni_rostock.goodod.owl.BasicImportingNormalizer;
+import de.uni_rostock.goodod.owl.SubClassCollector;
 import de.uni_rostock.goodod.tools.Configuration;
 
 import org.semanticweb.HermiT.Reasoner;
@@ -133,6 +134,24 @@ public class CheckerApp
 		
 		//logger.info("Found " + after.size() + " inconsistent classes after import change.");
 		logger.debug(after);
+		
+		/*
+		 * We need some tidying afterwards. The after set can contain
+		 * inconsistent classes that are inconsistent only because in the new
+		 * import, they are subclasses of a class that was already inconsistent before.
+		 * Hence we remove them from the after set.  
+		 */
+		for (OWLClass c : before)
+		{
+			Set <OWLClass> subclasses = SubClassCollector.collect(c, manager.getImportsClosure(ontology));
+			for (OWLClass subC : subclasses)
+			{
+				if ((true == after.contains(subC)) && (false == before.contains(subC)))
+				{
+					after.remove(subC);
+				}
+			}
+		}
 		int difference = before.size() - after.size();
 		
 		if (0 == difference)
