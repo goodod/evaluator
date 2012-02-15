@@ -190,32 +190,31 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 	
 	private void cleanClassHierarchy()
 	{
-		Set<OWLAxiom> axioms = ontology.getAxioms();
-		for (OWLAxiom ax: axioms)
+		Set<OWLSubClassOfAxiom> axioms = ontology.getAxioms(AxiomType.SUBCLASS_OF, true);
+		for (OWLSubClassOfAxiom ax: axioms)
 		{
-			// Consider only SubclassOf axioms
-			if (ax.isOfType(AxiomType.SUBCLASS_OF))
+			
+			OWLClassExpression subEx = ax.getSubClass();
+			OWLClassExpression superEx = ax.getSuperClass();
+			
+			// Consider only named classes
+			if ((subEx instanceof OWLClass) && (superEx instanceof OWLClass))
 			{
-				OWLClassExpression subEx = ((OWLSubClassOfAxiom)ax).getSubClass();
-				OWLClassExpression superEx = ((OWLSubClassOfAxiom)ax).getSuperClass();
 				
-				// Consider only named classes
-				if ((subEx instanceof OWLClass) && (superEx instanceof OWLClass))
+				/*
+				 * Get the subclasses of the superclass and the
+				 * superclasses of the subclass. If the resulting sets
+				 * share a member (modulo the classes in the axiom), the subclass
+				 * relation is entailed by transitivity alone and we can safely
+				 * remove the axiom.
+				 */
+				Set<OWLClass> subs = transitiveSuperClasses(subEx.asOWLClass());					
+				Set<OWLClass> supers = transitiveSubClasses(superEx.asOWLClass());
+				subs.remove(superEx);
+				supers.remove(subEx);
+				if (false == Collections.disjoint(subs, supers))
 				{
-					
-					/*
-					 * Get the subclasses of the superclass and the
-					 * superclasses of the subclass. If the resulting sets
-					 * share a member, the subclass relation is entailed by
-					 * transitivity alone and we can safely remove the axiom.
-					 */
-					Set<OWLClass> subs = transitiveSuperClasses(subEx.asOWLClass());
-					Set<OWLClass> supers = transitiveSubClasses(superEx.asOWLClass());
-					
-					if (false == Collections.disjoint(subs, supers))
-					{
-						changes.add(new RemoveAxiom(ontology,ax));
-					}
+					changes.add(new RemoveAxiom(ontology,ax));
 				}
 			}
 		}

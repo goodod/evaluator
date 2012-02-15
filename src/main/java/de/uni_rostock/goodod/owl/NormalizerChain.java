@@ -17,6 +17,7 @@
  */
 package de.uni_rostock.goodod.owl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +34,17 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 public class NormalizerChain implements Normalizer {
 
 	private List<? extends Normalizer> normalizers;
+	
+	public NormalizerChain(Normalizer... someNormalizers)
+	{
+		List<Normalizer> norms = new ArrayList<Normalizer>();
+		for (Normalizer n : someNormalizers)
+		{
+			norms.add(n);
+		}
+		normalizers = norms;
+		
+	}
 	public NormalizerChain(List<? extends Normalizer> theNormalizers)
 	{
 		normalizers = theNormalizers;
@@ -69,8 +81,8 @@ public class NormalizerChain implements Normalizer {
 	 * Tests whether the chain contains a normalizer of the specified type.
 	 * 
 	 * @param aClass The class to test against.
-	 * @return True if a normalizer is equivalent to aClass, a subclass of it,
-	 * or implements the interface described by aClass. 
+	 * @return True if a normalizer's class is equivalent to aClass, a
+	 * subclass of it, or implements the interface described by aClass. 
 	 */
 	public boolean containsNormalizerOfClass(Class<?> aClass)
 	{

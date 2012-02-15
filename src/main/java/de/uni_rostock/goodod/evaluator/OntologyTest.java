@@ -46,6 +46,7 @@ import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import de.uni_rostock.goodod.owl.*;
+import de.uni_rostock.goodod.tools.Configuration;
 
 /**
  * This class encapsulates a single ontology test.
@@ -163,21 +164,16 @@ public class OntologyTest {
 		Normalizer namer = new ClassExpressionNamingNormalizer();
 		Normalizer decomposer = new TaxonomicDecompositionNormalizer();
 		Normalizer subsumer = new SubsumptionMaterializationNormalizer();
-		List<Normalizer> normalizers = new ArrayList<Normalizer>(3);
-		normalizers.add(importer);
-		normalizers.add(namer);
-		normalizers.add(decomposer);
-		normalizers.add(subsumer);
-		NormalizerChain chain = new NormalizerChain(normalizers);
+		NormalizerChain chain = new NormalizerChain(importer, namer, decomposer, subsumer);
 		cache.setNormalizer(chain);
 		
-    	
+		writeNormalizedOntologiesTo(Collections.singleton(bioTopLiteURI), cache, new File(System.getProperty("java.io.tmpdir")));
     	
     	allOntologies.addAll(groupAOntologies);
     	allOntologies.addAll(groupBOntologies);
     	allOntologies.add(modelOntology);
     	logger.info("Running comparisons for test '" + getTestName() +"'.");
-   
+    	
     	for (URI u1 : allOntologies)
     	{
     		for (URI u2 : allOntologies)
@@ -216,6 +212,7 @@ public class OntologyTest {
     	{
     		writeNormalizedOntologiesTo(allOntologies, cache, new File(System.getProperty("java.io.tmpdir")));
     	}
+    	cache.teardown();
     	cache = null;
 	}
 	

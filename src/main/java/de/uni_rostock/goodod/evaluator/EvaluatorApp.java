@@ -23,6 +23,8 @@ import java.io.File;
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
 
+import de.uni_rostock.goodod.tools.Configuration;
+
 
 /**
  * Principal class for the evaluator. It loads the configuration and schedules

@@ -24,7 +24,7 @@ import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
-import de.uni_rostock.goodod.evaluator.Configuration;
+import de.uni_rostock.goodod.tools.Configuration;
 
 
 
@@ -46,7 +46,7 @@ import java.util.concurrent.FutureTask;
 public class OntologyCache {
 
 	private final int threadCount;
-	private final ExecutorService executor;
+	private ExecutorService executor;
 	private final OWLOntologyLoaderConfiguration config;
 	private final SimpleIRIMapper bioTopLiteMapper;
 	private final Map<URI,OWLOntology> ontologies;
@@ -167,12 +167,23 @@ public class OntologyCache {
 		return config;
 	}
 	
+	public void teardown()
+	{
+		flushCache();
+		executor.shutdownNow();
+		executor = null;
+		
+	}
+	
 	@Override
 	public void finalize() throws Throwable
 	{
 		try
 		{
-			executor.shutdownNow();
+			if (null != executor)
+			{
+				executor.shutdownNow();
+			}
 		}
 		finally
 		{

@@ -15,7 +15,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.evaluator;
+package de.uni_rostock.goodod.tools;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +26,8 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
+
+import de.uni_rostock.goodod.evaluator.EvaluatorApp;
 
 /**
  * Singleton class to hold tool-global configuration values. 

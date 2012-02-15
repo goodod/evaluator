@@ -33,7 +33,7 @@ public class CSCComparator extends SCComparator {
 
 	public CSCComparator(OntologyPair thePair, boolean doIncludeImports)
 	{
-		super(thePair,doIncludeImports);
+		super(thePair, doIncludeImports);
 	}
 	
 	
