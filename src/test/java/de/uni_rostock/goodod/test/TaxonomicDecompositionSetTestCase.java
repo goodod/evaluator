@@ -103,4 +103,49 @@ public class TaxonomicDecompositionSetTestCase extends TestCase {
 		Set<OWLClassExpression> actual = TDS(notAAndB);
 		assertEquals(expected, actual);
 	}
+	
+	@Test public void testDecomposeObjectSomeValuesFromSimple()
+	{
+		OWLClass A = factory.getOWLClass(IRI("A"));
+		OWLObjectProperty P = factory.getOWLObjectProperty(IRI("P"));
+		OWLClassExpression PsomeA = factory.getOWLObjectSomeValuesFrom(P, A);
+		assertEquals(Collections.singleton(PsomeA), TDS(PsomeA));
+	}
+	
+	@Test public void testDecomposeObjectSomeValuesFromComplex()
+	{
+		OWLClass A = factory.getOWLClass(IRI("A"));
+		OWLObjectProperty P = factory.getOWLObjectProperty(IRI("P"));
+		OWLClass B = factory.getOWLClass(IRI("B"));
+		OWLClassExpression AAndB = factory.getOWLObjectIntersectionOf(A, B);
+		OWLClassExpression PSomeAAndB = factory.getOWLObjectSomeValuesFrom(P, AAndB);
+		OWLClassExpression PSomeA = factory.getOWLObjectSomeValuesFrom(P, A);
+		OWLClassExpression PSomeB = factory.getOWLObjectSomeValuesFrom(P, B);
+		expected.add(PSomeA);
+		expected.add(PSomeB);
+		expected.add(PSomeAAndB);
+		assertEquals(expected, TDS(PSomeAAndB));
+	}
+	@Test public void testDecomposeObjectAllValuesFromSimple()
+	{
+		OWLClass A = factory.getOWLClass(IRI("A"));
+		OWLObjectProperty P = factory.getOWLObjectProperty(IRI("P"));
+		OWLClassExpression POnlyA = factory.getOWLObjectAllValuesFrom(P, A);
+		assertEquals(Collections.singleton(POnlyA), TDS(POnlyA));
+	}
+	
+	@Test public void testDecomposeObjectAllValuesFromComplex()
+	{
+		OWLClass A = factory.getOWLClass(IRI("A"));
+		OWLObjectProperty P = factory.getOWLObjectProperty(IRI("P"));
+		OWLClass B = factory.getOWLClass(IRI("B"));
+		OWLClassExpression AAndB = factory.getOWLObjectIntersectionOf(A, B);
+		OWLClassExpression POnlyAAndB = factory.getOWLObjectAllValuesFrom(P, AAndB);
+		OWLClassExpression POnlyA = factory.getOWLObjectAllValuesFrom(P, A);
+		OWLClassExpression POnlyB = factory.getOWLObjectAllValuesFrom(P, B);
+		expected.add(POnlyA);
+		expected.add(POnlyB);
+		expected.add(POnlyAAndB);
+		assertEquals(expected, TDS(POnlyAAndB));
+	}
 }
