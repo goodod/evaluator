@@ -30,7 +30,7 @@ import org.semanticweb.owlapi.model.*;
 import de.uni_rostock.goodod.owl.TaxonomicDecompositionCollector;
 /**
  * @author Niels Grewe
- *
+ * Test cases for taxonomic decomposition.
  */
 public class TaxonomicDecompositionSetTestCase extends TestCase {
 
@@ -148,4 +148,11 @@ public class TaxonomicDecompositionSetTestCase extends TestCase {
 		expected.add(POnlyAAndB);
 		assertEquals(expected, TDS(POnlyAAndB));
 	}
+	/* Tests missing for more arcane constructs:
+	 * - Object(Min|Max|Exact)Cardinality
+	 * - ObjectOneOf
+	 * - ObjectHasValue
+	 * - ObjectHasSelf
+	 * - All data property constructs
+	 */
 }
