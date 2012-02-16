@@ -21,10 +21,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
 
 import org.junit.*;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
 import de.uni_rostock.goodod.owl.TaxonomicDecompositionCollector;
@@ -32,10 +30,8 @@ import de.uni_rostock.goodod.owl.TaxonomicDecompositionCollector;
  * @author Niels Grewe
  * Test cases for taxonomic decomposition.
  */
-public class TaxonomicDecompositionSetTestCase extends TestCase {
+public class TaxonomicDecompositionSetTestCase extends AbstractTestCase {
 
-	final private OWLDataFactory factory = OWLManager.getOWLDataFactory();
-	final private String baseIRI = "http://www.phf.uni-rostock.de/goodod/test.owl#";
 	final private Set<OWLClassExpression> expected = new HashSet<OWLClassExpression>();
 	
 	@Before public void setUp()
@@ -48,10 +44,7 @@ public class TaxonomicDecompositionSetTestCase extends TestCase {
 		return TaxonomicDecompositionCollector.collect(e);
 	}
 	
-	private IRI IRI(String fragment)
-	{
-		return IRI.create(baseIRI + fragment);
-	}
+
 	@Test public void testDecomposeClassIntersection()
 	{
 		OWLClass A = factory.getOWLClass(IRI("A"));
