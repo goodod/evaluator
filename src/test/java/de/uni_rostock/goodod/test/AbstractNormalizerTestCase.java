@@ -40,10 +40,11 @@ public abstract class AbstractNormalizerTestCase extends AbstractTestCase {
 		ontology = manager.createOntology(IRI.create(baseIRI));
 	}
 	
-	protected void addClass(String name)
+	protected OWLClass addClass(String name)
 	{
 		OWLClass c = factory.getOWLClass(IRI(name));
 		addClass(c);
+		return c;
 	}
 	
 	protected void addClass(OWLClass c)
@@ -52,7 +53,7 @@ public abstract class AbstractNormalizerTestCase extends AbstractTestCase {
 		addAxiom(decl);
 	}
 	
-	protected void addSubClassOf(OWLClass sub, OWLClass sup)
+	protected void addSubClassOf(OWLClassExpression sub, OWLClassExpression sup)
 	{
 		OWLAxiom axiom = factory.getOWLSubClassOfAxiom(sub, sup);
 		addAxiom(axiom);
