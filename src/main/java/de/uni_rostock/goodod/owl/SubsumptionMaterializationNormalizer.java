@@ -19,21 +19,14 @@ package de.uni_rostock.goodod.owl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.ConsoleProgressMonitor;
 import org.semanticweb.owlapi.reasoner.InferenceType;
-import org.semanticweb.owlapi.reasoner.Node;
-import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.HermiT.Configuration.ExistentialStrategyType;
@@ -217,6 +210,24 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 				if (false == Collections.disjoint(subs, supers))
 				{
 					changes.add(new RemoveAxiom(ontology,ax));
+				}
+			}
+			
+			/*
+			 * Special-case: If the superclass has "Test" (case-insensitively)
+			 * as its fragment, remove the axiom.
+			 */
+			if (superEx instanceof OWLClass)
+			{
+				IRI superIRI = ((OWLClass) superEx).getIRI();
+				String fragment = superIRI.getFragment();
+				if (fragment.equalsIgnoreCase("TEST"))
+				{
+					RemoveAxiom removeAx = new RemoveAxiom(ontology, ax);
+					if (false == changes.contains(removeAx))
+					{
+						changes.add(removeAx);
+					}
 				}
 			}
 		}
