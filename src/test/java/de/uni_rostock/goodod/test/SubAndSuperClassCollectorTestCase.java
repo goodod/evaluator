@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.*;
-import org.semanticweb.owlapi.apibinding.OWLManager;
+
 import org.semanticweb.owlapi.model.*;
 
 import de.uni_rostock.goodod.owl.SubClassCollector;
@@ -30,15 +30,14 @@ import de.uni_rostock.goodod.owl.SuperClassCollector;
 
 /**
  * @author Niels Grewe
- *
+ * Test cases for helper classes that collect sub/superclass closures.
  */
 public class SubAndSuperClassCollectorTestCase extends AbstractTestCase {
 
 	private OWLOntology ontology;
-	private final OWLOntologyManager manager = OWLManager.createOWLOntologyManager(factory);
 	
-@Override
-@Before public void setUp() throws OWLOntologyCreationException
+	@Override
+	@Before public void setUp() throws OWLOntologyCreationException
 	{
 		ontology = manager.createOntology(IRI.create(baseIRI));
 		OWLClass A = factory.getOWLClass(IRI("A"));
