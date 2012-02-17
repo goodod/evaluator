@@ -33,7 +33,7 @@ public abstract class AbstractTestCase extends TestCase {
 
 	/**
 	 * Generate an IRI for use in the test.
-	 * @param fragment The fragment to append (prefixed with '#'
+	 * @param fragment The fragment to append (will be prefixed with '#')
 	 * @return An IRI based on the base for our test.
 	 */
 	protected IRI IRI(String fragment)
