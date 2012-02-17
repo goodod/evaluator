@@ -31,8 +31,6 @@ import de.uni_rostock.goodod.owl.BasicNormalizer;
  *
  */
 public class BasicNormalizerTestCase extends AbstractNormalizerTestCase {
-	protected final IRI biotopA = IRI.create("http://purl.org/biotop/biotoplite_group_A_TEST.owl");
-	protected final IRI biotopB = IRI.create("http://purl.org/biotop/biotoplite_group_B_TEST.owl");
 
 	@Override
 	@Before public void setUp() throws OWLOntologyCreationException
@@ -40,15 +38,15 @@ public class BasicNormalizerTestCase extends AbstractNormalizerTestCase {
 		super.setUp();
 		normalizer = new BasicNormalizer();
 		Map<IRI,IRI> importMap = new HashMap<IRI,IRI>();
-		importMap.put(biotopA, biotopIRI);
-		importMap.put(biotopB, biotopIRI);
+		importMap.put(biotopA, biotopCanonical);
+		importMap.put(biotopB, biotopCanonical);
 		((BasicNormalizer)normalizer).setImportMappings(importMap);
 	}
 	
 	@Test public void testReplacesBioTopA() throws OWLOntologyCreationException
 	{
 		IRI variantA = IRI.create(biotopA.toString() + "A");
-		IRI canonical = IRI.create(biotopIRI.toString() + "A");
+		IRI canonical = IRI.create(biotopCanonical.toString() + "A");
 		OWLClass variantClass = factory.getOWLClass(variantA);
 		OWLClass canonicalClass = factory.getOWLClass(canonical);
 		addClass(variantClass);
@@ -61,7 +59,7 @@ public class BasicNormalizerTestCase extends AbstractNormalizerTestCase {
 	@Test public void testReplacesBioTopB() throws OWLOntologyCreationException
 	{
 		IRI variantB = IRI.create(biotopB.toString() + "A");
-		IRI canonical = IRI.create(biotopIRI.toString() + "A");
+		IRI canonical = IRI.create(biotopCanonical.toString() + "A");
 		OWLClass variantClass = factory.getOWLClass(variantB);
 		OWLClass canonicalClass = factory.getOWLClass(canonical);
 		addClass(variantClass);
@@ -73,7 +71,7 @@ public class BasicNormalizerTestCase extends AbstractNormalizerTestCase {
 
 	@Test public void testDoesNotReplaceNonBioTopClass() throws OWLOntologyCreationException
 	{
-		IRI canonical = IRI.create(biotopIRI.toString() + "A");
+		IRI canonical = IRI.create(biotopCanonical.toString() + "A");
 		OWLClass nonBioTopClass = factory.getOWLClass(IRI("A"));
 		OWLClass bioTopClass = factory.getOWLClass(canonical);
 		addClass(nonBioTopClass);

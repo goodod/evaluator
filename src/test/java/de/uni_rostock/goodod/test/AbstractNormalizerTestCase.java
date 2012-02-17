@@ -30,7 +30,9 @@ public abstract class AbstractNormalizerTestCase extends AbstractTestCase {
 
 	protected OWLOntology ontology;
 	protected Normalizer normalizer;
-	protected final IRI biotopIRI = IRI.create("http://purl.org/biotop/biotoplite.owl");
+	protected final IRI biotopCanonical = IRI.create("http://purl.org/biotop/biotoplite.owl");
+	protected final IRI biotopA = IRI.create("http://purl.org/biotop/biotoplite_group_A_TEST.owl");
+	protected final IRI biotopB = IRI.create("http://purl.org/biotop/biotoplite_group_B_TEST.owl");
 	@Override
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
