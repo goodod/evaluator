@@ -32,6 +32,8 @@ import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.ConsoleProgressMonitor;
 import org.semanticweb.owlapi.reasoner.InferenceType;
+import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
 import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.HermiT.Configuration.ExistentialStrategyType;
@@ -92,8 +94,7 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 		// Find all entailed subsumptions
 		findEntailedSubsumptions(IRIs);
 		
-		// Eliminate cycles.
-		removeCyclicSubsumptions();
+		// We do cycle elimination implicitly when finding entailments.
 		
 		// Clean the hierarchy to eliminate redundant axioms:
 		
@@ -162,13 +163,24 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 				}
 				OWLAxiom ax = factory.getOWLSubClassOfAxiom(c, other);
 				OWLAxiom invAx = factory.getOWLSubClassOfAxiom(other,c);
-				if (reasoner.isEntailed(ax))
+				boolean axEntailed = reasoner.isEntailed(ax);
+				boolean invEntailed = reasoner.isEntailed(invAx);
+				if (axEntailed && invEntailed)
 				{
-					changes.add(new AddAxiom(ontology,ax));
+					// Equivalent classes, just emit a EquivalentClasses axiom
+					OWLAxiom equiv = factory.getOWLEquivalentClassesAxiom(c, other);
+					changes.add(new AddAxiom(ontology, equiv));
 				}
-				if (reasoner.isEntailed(invAx))
+				else
 				{
-					changes.add(new AddAxiom(ontology,invAx));
+					if (axEntailed)
+					{
+						changes.add(new AddAxiom(ontology,ax));
+					}
+					if (invEntailed)
+					{
+						changes.add(new AddAxiom(ontology,invAx));
+					}
 				}
 			}
 		}
@@ -177,16 +189,6 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 		commitChanges();
 	}
 
-	private void removeCyclicSubsumptions()
-	{
-		Set<List<OWLClass>> cycles = getCycles();
-		logger.debug("Detected " + getCycles().size() + " cycles.");
-		for (List<OWLClass> cycle : cycles)
-		{
-			removeCyclicSubsumption(cycle);
-		}
-		commitChanges();
-	}
 	
 	private void cleanClassHierarchy()
 	{
@@ -221,111 +223,6 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 		
 		logger.debug("Removed " + changes.size() + " redundant subsumptions.");
 		commitChanges();
-	}
-	
-	private void removeCyclicSubsumption(List<OWLClass> cycle)
-	{
-		/*
-		 * Handling cycles <= 1 is nonsensical.
-		 */
-		if (1 >= cycle.size())
-		{
-			return;
-		}
-		
-		/*
-		 * The top node of the list is at index 0. So for every n,
-		 * n+1 subclassOf n. And also for the class at the last position m,
-		 * m subClassOf 0. Which fits neatly into the following loop.
-		 */
-		OWLClass superClass = cycle.get((cycle.size() - 1));
-		
-		/*
-		 * We also decide on the topmost class in the cycle as the canonical name. 
-		 */
-		OWLClass topmost = cycle.get(0);
-		
-		for (OWLClass subClass : cycle)
-		{
-			OWLAxiom subClassAx = factory.getOWLSubClassOfAxiom(subClass, superClass);
-			changes.add(new RemoveAxiom(ontology, subClassAx));
-			if (false == topmost.equals(subClass))
-			{
-				OWLAxiom equivAx = factory.getOWLEquivalentClassesAxiom(topmost, subClass);
-				changes.add(new AddAxiom(ontology, equivAx));
-			}
-			superClass = subClass;
-		}
-		
-	}
-	
-	private Set<List<OWLClass>> getCycles()
-	{
-		OWLClass top = factory.getOWLThing();
-		return getCycles(null, Collections.singleton(top));
-	}
-	
-	private Set<OWLClass> getNamedSubClasses(OWLClass c)
-	{
-		Set<OWLClass> classes = new HashSet<OWLClass>();
-		Set<OWLClassExpression> expressions = c.getSubClasses(ontology.getImportsClosure());
-		for (OWLClassExpression ce : expressions)
-		{
-			if (ce instanceof OWLClass)
-			{
-				classes.add(ce.asOWLClass());
-			}
-		}
-		return classes;
-	}
-	
-	private Set<List<OWLClass>> getCycles(List<OWLClass> baseList, Set<OWLClass> classes)
-	{
-		Set<List<OWLClass>> cycles = new HashSet<List<OWLClass>>();
-		if (null == baseList)
-		{
-			baseList = new Vector<OWLClass>();
-		}
-		Map<OWLClass,List<OWLClass>> queueMap = new HashMap<OWLClass,List<OWLClass>>();
-		for (OWLClass c : classes)
-		{
-			queueMap.put(c,baseList);
-		}
-		Map<OWLClass,List<OWLClass>> newQueueMap = new HashMap<OWLClass,List<OWLClass>>();
-		while (0 != queueMap.size())
-		{
-			for (Entry<OWLClass, List<OWLClass>> e : queueMap.entrySet())
-			{
-				OWLClass c = e.getKey();
-				List<OWLClass> list = e.getValue();
-			
-				int index = list.indexOf(c);
-				if (-1 == index)
-				{
-					// This means the node is not already present in our list
-					List<OWLClass> newList = new Vector<OWLClass>(list);
-					newList.add(c);
-					for (OWLClass nextClass : getNamedSubClasses(c))
-					{
-						newQueueMap.put(nextClass, newList);
-					}
-				}
-				else
-				{
-					/*
-					 * If we already found the class in our list, we have reached a
-					 * cycle.
-					 * The cycle begins at the index we just found and ends at the
-					 * end of the list.
-					 */
-					cycles.add(list.subList(index, (list.size() - 1)));
-				}
-			}
-			queueMap.clear();
-			queueMap.putAll(newQueueMap);
-			newQueueMap.clear();	
-		}
-		return cycles;
 	}
 
 	protected Set<OWLClass>transitiveSubClasses(OWLClass c)
