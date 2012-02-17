@@ -34,8 +34,9 @@ public class TaxonomicDecompositionSetTestCase extends AbstractTestCase {
 
 	final private Set<OWLClassExpression> expected = new HashSet<OWLClassExpression>();
 	
-	@Before public void setUp()
+	@Before public void setUp() throws OWLOntologyCreationException
 	{
+		super.setUp();
 		expected.clear();
 	}
 	

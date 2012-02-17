@@ -18,10 +18,8 @@
 package de.uni_rostock.goodod.test;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-
+import org.semanticweb.owlapi.model.*;
+import org.junit.*;
 import junit.framework.TestCase;
 
 /**
@@ -31,8 +29,7 @@ import junit.framework.TestCase;
 public abstract class AbstractTestCase extends TestCase {
 	final protected String baseIRI = "http://www.phf.uni-rostock.de/goodod/test.owl";
 	final protected OWLDataFactory factory = OWLManager.getOWLDataFactory();
-	final protected OWLOntologyManager manager = OWLManager.createOWLOntologyManager(factory);
-
+	protected OWLOntologyManager manager;
 	/**
 	 * Generate an IRI for use in the test.
 	 * @param fragment The fragment to append (will be prefixed with '#')
@@ -41,6 +38,12 @@ public abstract class AbstractTestCase extends TestCase {
 	protected IRI IRI(String fragment)
 	{
 		return IRI.create(baseIRI + "#" + fragment);
+	}
+	
+	@Override
+	@Before public void setUp() throws OWLOntologyCreationException
+	{
+		manager = OWLManager.createOWLOntologyManager(factory);
 	}
 	
 }

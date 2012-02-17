@@ -17,13 +17,16 @@
  */
 package de.uni_rostock.goodod.test;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import org.junit.Before;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.apache.commons.logging.LogFactory;
+import org.junit.*;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
 import de.uni_rostock.goodod.owl.BasicImportingNormalizer;
 
@@ -37,7 +40,17 @@ public class BasicImportingNormalizerTestCase extends
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
 		super.setUp();
-		
+		IRI physicalTestBioTop = null;
+		try
+		{
+			physicalTestBioTop = IRI.create(BasicImportingNormalizerTestCase.class.getResource(File.separatorChar + "biotoplite.owl").toURI());
+		} 
+		catch (URISyntaxException e)
+		{
+			LogFactory.getLog(BasicImportingNormalizerTestCase.class).error("Could not get phyiscal BioTopURI", e);
+		}
+		SimpleIRIMapper bioTopMapper = new SimpleIRIMapper(biotopCanonical, physicalTestBioTop);
+		manager.addIRIMapper(bioTopMapper);
 		OWLOntologyLoaderConfiguration loaderConf = new OWLOntologyLoaderConfiguration();
 		loaderConf = loaderConf.addIgnoredImport(biotopA);
 		loaderConf = loaderConf.addIgnoredImport(biotopB);
@@ -47,5 +60,31 @@ public class BasicImportingNormalizerTestCase extends
 		importMap.put(biotopA, biotopCanonical);
 		importMap.put(biotopB, biotopCanonical);
 		((BasicImportingNormalizer)normalizer).setImportMappings(importMap);
+	}
+	
+	@Test public void testReplacesBioTopA() throws OWLOntologyCreationException
+	{
+		OWLImportsDeclaration importA = factory.getOWLImportsDeclaration(biotopA);
+		OWLImportsDeclaration importCanonical = factory.getOWLImportsDeclaration(biotopCanonical);
+		AddImport addImport = new AddImport(ontology, importA);
+		manager.applyChange(addImport);
+		normalizer.normalize(ontology);
+		Set<OWLImportsDeclaration> imports = ontology.getImportsDeclarations();
+		assertTrue(imports.contains(importCanonical));
+		assertFalse(imports.contains(importA));
+		assertFalse(ontology.getClassesInSignature(true).isEmpty());
+	}
+	
+	@Test public void testReplacesBioTopB() throws OWLOntologyCreationException
+	{
+		OWLImportsDeclaration importB = factory.getOWLImportsDeclaration(biotopA);
+		OWLImportsDeclaration importCanonical = factory.getOWLImportsDeclaration(biotopCanonical);
+		AddImport addImport = new AddImport(ontology, importB);
+		manager.applyChange(addImport);
+		normalizer.normalize(ontology);
+		Set<OWLImportsDeclaration> imports = ontology.getImportsDeclarations();
+		assertTrue(imports.contains(importCanonical));
+		assertFalse(imports.contains(importB));
+		assertFalse(ontology.getClassesInSignature(true).isEmpty());
 	}
 }

@@ -36,6 +36,7 @@ public abstract class AbstractNormalizerTestCase extends AbstractTestCase {
 	@Override
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
+		super.setUp();
 		ontology = manager.createOntology(IRI.create(baseIRI));
 	}
 	

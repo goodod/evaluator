@@ -39,6 +39,7 @@ public class SubAndSuperClassCollectorTestCase extends AbstractTestCase {
 	@Override
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
+		super.setUp();
 		ontology = manager.createOntology(IRI.create(baseIRI));
 		OWLClass A = factory.getOWLClass(IRI("A"));
 		OWLClass B = factory.getOWLClass(IRI("B"));
