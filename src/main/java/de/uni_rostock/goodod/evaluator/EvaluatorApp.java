@@ -19,6 +19,8 @@
 package de.uni_rostock.goodod.evaluator;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
@@ -54,7 +56,20 @@ public class EvaluatorApp
     	}
     	
     	logger.info(theTest.toString());
-    	
+    	String baseName = testFile.substring(0, (testFile.length() - 7));
+    	File precisionFile =  new File(baseName + ".precision.csv");
+    	File recallFile = new File(baseName + ".recall.csv");
+    	File fmeasureFile = new File(baseName + ".fmeasure.csv");
+    	try
+    	{
+    		theTest.writePrecisionTable(new FileWriter(precisionFile));
+    		theTest.writeRecallTable(new FileWriter(recallFile));
+    		theTest.writeFMeasureTable(new FileWriter(fmeasureFile));
+    	}
+    	catch (IOException e)
+    	{
+    		logger.warn("Could not write test data", e);
+    	}
     }
 	
 }
