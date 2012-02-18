@@ -481,13 +481,9 @@ public class OntologyTest {
 	
 	private String shortNameForURI(URI u)
 	{
-	
-		String s = u.toString();
-		s = s.substring((u.getScheme().length()+1));
-		String repoRoot = globalConfig.getString("repositoryRoot");
-		String testDir = repoRoot + File.separator + globalConfig.getString("testDir");
-		String groupADir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupA");
-		String groupBDir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupB");
+		File file = new File(u);
+		String s = file.toString();
+		int sep = s.lastIndexOf(File.separator);
 		
 		String marker = "";
 		if (groupAOntologies.contains(u))
@@ -499,19 +495,9 @@ public class OntologyTest {
 			marker = "B:";
 		}
 		
-		if (s.startsWith(testDir))
-		{
-			return s.substring(testDir.length());
-		}
-		else if (s.startsWith(groupADir))
-		{
-			return marker + s.substring(groupADir.length());
-		}
-		else if (s.startsWith(groupBDir))
-		{
-			return marker + s.substring(groupBDir.length());
-		}
-		return s;
+		s = s.substring(sep + 1);
+		
+		return marker + s;
 	}
 	
 	private String tableHeader(List<URI> uris)
