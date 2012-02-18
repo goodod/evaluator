@@ -56,7 +56,7 @@ public class EvaluatorApp
     	}
     	
     	logger.info(theTest.toString());
-    	String baseName = testFile.substring(0, (testFile.length() - 7));
+    	String baseName = testFile.substring(0, (testFile.length() - 6));
     	File precisionFile =  new File(baseName + ".precision.csv");
     	File recallFile = new File(baseName + ".recall.csv");
     	File fmeasureFile = new File(baseName + ".fmeasure.csv");
