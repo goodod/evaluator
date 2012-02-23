@@ -1,7 +1,7 @@
 /**
   Copyright (C) 2011 The University of Rostock.
  
-  Written by:  thebeing
+  Written by:  Niels Grewe
   Created: 21.12.2011
   
   This program is free software; you can redistribute it and/or
@@ -40,44 +40,47 @@ import org.semanticweb.HermiT.Reasoner;
  * @author Niels Grewe
  *
  */
-public class SubsumptionMaterializationNormalizer implements Normalizer {
+public class SubsumptionMaterializationNormalizer extends AbstractNormalizer {
 
-	private OWLOntology ontology;
-	private OWLOntologyManager manager;
-	private OWLDataFactory factory;
 	private Reasoner reasoner;
-	private Set<OWLOntologyChange> changes;
+	
 	private static Log logger = LogFactory.getLog(SubsumptionMaterializationNormalizer.class);
 	
-	public SubsumptionMaterializationNormalizer()
+	public SubsumptionMaterializationNormalizer(OWLOntology ont)
 	{
-		changes = new HashSet<OWLOntologyChange>();
+		super(ont);
+		Configuration reasonerConfig = new Configuration();
+		reasonerConfig.throwInconsistentOntologyException = false;
+		ReasonerProgressMonitor monitor = new ConsoleProgressMonitor();
+		reasonerConfig.existentialStrategyType = ExistentialStrategyType.INDIVIDUAL_REUSE;
+		reasonerConfig.reasonerProgressMonitor = monitor;
+		reasonerConfig.tableauMonitorType = TableauMonitorType.NONE;
+		//reasonerConfig.individualTaskTimeout = 10000;
+		reasoner = new Reasoner(reasonerConfig, ontology);
 	}
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology)
 	 */
 	@Override
-	public void normalize(OWLOntology ont) throws OWLOntologyCreationException {
+	public void normalize() throws OWLOntologyCreationException {
 		
-		Set<OWLClass> classes = ont.getClassesInSignature(true);
+		Set<OWLClass> classes = ontology.getClassesInSignature(true);
 		Set<IRI> IRIs = new HashSet<IRI>();
 		for (OWLClass c : classes)
 		{
 			IRIs.add(c.getIRI());
 		}
-		normalize(ont, IRIs);
+		normalize(IRIs);
 	}
 
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology, java.util.Set)
 	 */
 	@Override
-	public synchronized void normalize(OWLOntology ont, Set<IRI> IRIs)
+	public synchronized void normalize(Set<IRI> IRIs)
 			throws OWLOntologyCreationException {
 		
 		logger.debug("Running subsumption materialization.");
-		// Setup the state for this run.
-		setupForOntology(ont);
 		
 		logger.debug("Classifying with reasoner.");
 		// Let the reasoner do the classification
@@ -96,20 +99,7 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 		finish();
 	}
 	
-	private void setupForOntology(OWLOntology ont)
-	{
-		ontology = ont;
-		manager = ontology.getOWLOntologyManager();
-		factory = manager.getOWLDataFactory();
-		Configuration reasonerConfig = new Configuration();
-		reasonerConfig.throwInconsistentOntologyException = false;
-		ReasonerProgressMonitor monitor = new ConsoleProgressMonitor();
-		reasonerConfig.existentialStrategyType = ExistentialStrategyType.INDIVIDUAL_REUSE;
-		reasonerConfig.reasonerProgressMonitor = monitor;
-		reasonerConfig.tableauMonitorType = TableauMonitorType.NONE;
-		//reasonerConfig.individualTaskTimeout = 10000;
-		reasoner = new Reasoner(reasonerConfig, ontology);
-	}
+
 	
 	private void commitChanges()
 	{
@@ -134,10 +124,6 @@ public class SubsumptionMaterializationNormalizer implements Normalizer {
 		{
 			commitChanges();
 		}
-		reasoner = null;
-		factory = null;
-		manager = null;
-		ontology = null;
 	}
 
 	private void findEntailedSubsumptions(Set<IRI> IRIs)

@@ -1,7 +1,7 @@
 /**
   Copyright (C) 2011 The University of Rostock.
  
-  Written by:  thebeing
+  Written by:  Niels Grewe
   Created: 13.12.2011
   
   This program is free software; you can redistribute it and/or
@@ -18,27 +18,26 @@
 package de.uni_rostock.goodod.owl;
 
 import java.util.Set;
-
+import java.util.Map;
 import org.semanticweb.owlapi.model.*;
 
 /**
- * @author thebeing
+ * @author Niels Grewe
  *
  */
 public class BasicImportingNormalizer extends BasicNormalizer {
 
 	private OWLOntologyLoaderConfiguration config;
-	public BasicImportingNormalizer(OWLOntologyLoaderConfiguration conf)
+	public BasicImportingNormalizer(OWLOntology ont, Map<IRI,IRI> importMap, OWLOntologyLoaderConfiguration conf)
 	{
-		super();
+		super(ont, importMap);
 		config = conf;
 	}
 	
-	public void normalize(OWLOntology ont) throws OWLOntologyCreationException
+	public void normalize() throws OWLOntologyCreationException
 	{
-		super.normalize(ont);
-		Set<OWLImportsDeclaration> imports = ont.getImportsDeclarations();
-		OWLOntologyManager man = ont.getOWLOntologyManager();
+		super.normalize();
+		Set<OWLImportsDeclaration> imports = ontology.getImportsDeclarations();
 	
 		for (OWLImportsDeclaration i : imports)
 		{
@@ -49,11 +48,11 @@ public class BasicImportingNormalizer extends BasicNormalizer {
 				theIRI = remappedIRI;
 			}
 			
-			if (false == man.contains(theIRI))
+			if (false == manager.contains(theIRI))
 			{
 				try
 				{
-					man.makeLoadImportRequest(i,config);
+					manager.makeLoadImportRequest(i,config);
 				}
 				catch (OWLOntologyCreationException e)
 				{
@@ -65,11 +64,11 @@ public class BasicImportingNormalizer extends BasicNormalizer {
 	}
 	
 	@Override
-	public void normalize(OWLOntology ont, Set<IRI>targetIRIs) throws OWLOntologyCreationException 
+	public void normalize(Set<IRI>targetIRIs) throws OWLOntologyCreationException 
 	{
 		try
 		{
-			normalize(ont);
+			normalize();
 		}
 		catch (OWLOntologyCreationException e)
 		{

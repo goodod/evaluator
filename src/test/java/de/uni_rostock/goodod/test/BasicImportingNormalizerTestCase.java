@@ -1,7 +1,7 @@
 /**
   Copyright (C) 2012 The University of Rostock.
  
-  Written by:  thebeing
+  Written by:  Niels Grewe
   Created: 17.02.2012
   
   This program is free software; you can redistribute it and/or
@@ -28,10 +28,10 @@ import org.junit.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
-import de.uni_rostock.goodod.owl.BasicImportingNormalizer;
+import de.uni_rostock.goodod.owl.BasicImportingNormalizerFactory;
 
 /**
- * @author thebeing
+ * @author Niels Grewe
  *
  */
 public class BasicImportingNormalizerTestCase extends
@@ -55,11 +55,11 @@ public class BasicImportingNormalizerTestCase extends
 		loaderConf = loaderConf.addIgnoredImport(biotopA);
 		loaderConf = loaderConf.addIgnoredImport(biotopB);
 		loaderConf = loaderConf.setSilentMissingImportsHandling(true);
-		normalizer = new BasicImportingNormalizer(loaderConf);
+		
 		Map<IRI,IRI> importMap = new HashMap<IRI,IRI>();
 		importMap.put(biotopA, biotopCanonical);
 		importMap.put(biotopB, biotopCanonical);
-		((BasicImportingNormalizer)normalizer).setImportMappings(importMap);
+		normalizer = new BasicImportingNormalizerFactory(importMap, loaderConf);
 	}
 	
 	@Test public void testReplacesBioTopA() throws OWLOntologyCreationException

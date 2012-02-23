@@ -20,7 +20,7 @@ package de.uni_rostock.goodod.test;
 import org.junit.*;
 import org.semanticweb.owlapi.model.*;
 
-import de.uni_rostock.goodod.owl.TaxonomicDecompositionNormalizer;
+import de.uni_rostock.goodod.owl.TaxonomicDecompositionNormalizerFactory;
 
 /**
  * @author Niels Grewe
@@ -32,7 +32,7 @@ public class TaxonomicDecompositionNormalizerTestCase extends
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
 		super.setUp();
-		normalizer = new TaxonomicDecompositionNormalizer();
+		normalizer = new TaxonomicDecompositionNormalizerFactory();
 	}
 	
 	// We only need one test because we know check taxonomic decomposition works in another test.

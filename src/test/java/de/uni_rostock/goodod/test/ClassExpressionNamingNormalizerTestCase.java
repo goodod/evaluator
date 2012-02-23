@@ -21,7 +21,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.*;
-import de.uni_rostock.goodod.owl.ClassExpressionNamingNormalizer;
+import de.uni_rostock.goodod.owl.ClassExpressionNamingNormalizerFactory;
+
 import org.semanticweb.owlapi.model.*;
 /**
  * @author Niels Grewe
@@ -34,7 +35,7 @@ public class ClassExpressionNamingNormalizerTestCase extends
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
 		super.setUp();
-		normalizer = new ClassExpressionNamingNormalizer();
+		normalizer = new ClassExpressionNamingNormalizerFactory();
 	}
 	
 	@Test public void testSimpleSubClassOfSimple() throws OWLOntologyCreationException

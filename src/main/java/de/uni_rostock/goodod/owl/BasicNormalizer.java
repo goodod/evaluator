@@ -33,17 +33,15 @@ import org.semanticweb.owlapi.model.*;
  * @author Niels Grewe
  * 
  */
-public class BasicNormalizer implements Normalizer, OWLAxiomVisitor {
+public class BasicNormalizer extends AbstractNormalizer implements OWLAxiomVisitor {
 	protected Map<IRI, IRI> IRIMap;
-	private OWLOntology ontology;
-	private OWLOntologyManager manager;
-	private OWLDataFactory factory;
 	private IRITransformFactory transformFactory;
-	protected Set<OWLOntologyChange> changes;
 
-	public BasicNormalizer() {
-		changes = new HashSet<OWLOntologyChange>();
+	public BasicNormalizer(OWLOntology ont, Map<IRI,IRI>map) {
+		super(ont);
 		transformFactory = new IRITransformFactory();
+		IRIMap = map;
+
 	}
 
 	/**
@@ -59,23 +57,13 @@ public class BasicNormalizer implements Normalizer, OWLAxiomVisitor {
 	 * 
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology)
 	 */
-	public void normalize(OWLOntology ont) throws OWLOntologyCreationException {
+	public void normalize() throws OWLOntologyCreationException {
 		/*
 		 * Don't do anything if we do not have any mappings.
 		 */
 		if ((null == IRIMap) || IRIMap.isEmpty()) {
 			return;
 		}
-		/*
-		 * Store the ontology as state.
-		 */
-		ontology = ont;
-
-		/*
-		 * Fetch ourselves the manager and data factory to reuse.
-		 */
-		manager = ont.getOWLOntologyManager();
-		factory = manager.getOWLDataFactory();
 
 		/*
 		 * Basic normalization algorithm is the following:
@@ -104,13 +92,6 @@ public class BasicNormalizer implements Normalizer, OWLAxiomVisitor {
 		 */
 		manager.applyChanges(new ArrayList<OWLOntologyChange>(changes));
 		
-		/*
-		 * Get rid of the factory reference, we need a new one for further
-		 * normalizations.
-		 */
-		factory = null;
-		manager = null;
-		ontology = null;
 	}
 
 	/**
@@ -120,8 +101,8 @@ public class BasicNormalizer implements Normalizer, OWLAxiomVisitor {
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology,
 	 *      java.util.Set)
 	 */
-	public void normalize(OWLOntology ont, Set<IRI> IRIs) throws OWLOntologyCreationException  {
-		normalize(ont);
+	public void normalize(Set<IRI> IRIs) throws OWLOntologyCreationException  {
+		normalize();
 	}
 
 	private void replaceImports()

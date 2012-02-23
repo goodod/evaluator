@@ -24,7 +24,8 @@ import java.util.Set;
 import org.semanticweb.owlapi.model.*;
 import org.junit.*;
 
-import de.uni_rostock.goodod.owl.BasicNormalizer;
+
+import de.uni_rostock.goodod.owl.BasicNormalizerFactory;
 
 /**
  * @author Niels Grewe
@@ -36,11 +37,11 @@ public class BasicNormalizerTestCase extends AbstractNormalizerTestCase {
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
 		super.setUp();
-		normalizer = new BasicNormalizer();
+		
 		Map<IRI,IRI> importMap = new HashMap<IRI,IRI>();
 		importMap.put(biotopA, biotopCanonical);
 		importMap.put(biotopB, biotopCanonical);
-		((BasicNormalizer)normalizer).setImportMappings(importMap);
+		normalizer = new BasicNormalizerFactory(importMap);
 	}
 	
 	@Test public void testReplacesBioTopA() throws OWLOntologyCreationException

@@ -27,7 +27,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
 
-import de.uni_rostock.goodod.owl.BasicImportingNormalizer;
+import de.uni_rostock.goodod.owl.BasicImportingNormalizerFactory;
 import de.uni_rostock.goodod.owl.SubClassCollector;
 import de.uni_rostock.goodod.tools.Configuration;
 
@@ -124,8 +124,8 @@ public class CheckerApp
 			logger.fatal("Loading failed", e);
 			System.exit(1);
 		}
-		BasicImportingNormalizer n = new BasicImportingNormalizer(interimConfig);
-		n.setImportMappings(importMap);
+		BasicImportingNormalizerFactory n = new BasicImportingNormalizerFactory(importMap, interimConfig);
+		
 		n.normalize(ontology);
 		
 		reasoner = new Reasoner(reasonerConfig, ontology);

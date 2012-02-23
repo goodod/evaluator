@@ -20,7 +20,7 @@ package de.uni_rostock.goodod.test;
 import org.junit.*;
 import org.semanticweb.owlapi.model.*;
 
-import de.uni_rostock.goodod.owl.SubsumptionMaterializationNormalizer;
+import de.uni_rostock.goodod.owl.SubsumptionMaterializationNormalizerFactory;
 
 /**
  * @author Niels Grewe
@@ -33,7 +33,7 @@ public class SubsumptionMaterializationNormalizerTestCase extends
 	@Before public void setUp() throws OWLOntologyCreationException
 	{
 		super.setUp();
-		normalizer = new SubsumptionMaterializationNormalizer();
+		normalizer = new SubsumptionMaterializationNormalizerFactory();
 	}
 	
 	@Test public void testFindSubsumption() throws OWLOntologyCreationException

@@ -52,7 +52,7 @@ public class OntologyCache {
 	private final Map<URI,OWLOntology> ontologies;
 	private final Map<URI,FutureTask<OWLOntology>> futures;
 	private static Log logger = LogFactory.getLog(OntologyCache.class);
-	private Normalizer normalizer;
+	private NormalizerFactory normalizerFactory;
 	
 	public OntologyCache(URI commonBioTopLiteURI, Set<IRI>importsToIgnore)
 	{
@@ -133,9 +133,9 @@ public class OntologyCache {
 							ontology = manager.loadOntologyFromOntologyDocument(source, config);
 						
 							logger.info("Loading and normalizing ontology from " + u.toString() + ".");
-							if (null != normalizer)
+							if (null != normalizerFactory)
 							{
-								normalizer.normalize(ontology);
+								normalizerFactory.normalize(ontology);
 							}
 						}
 						catch (OWLOntologyCreationException e)
@@ -151,15 +151,15 @@ public class OntologyCache {
 		return future;
 	}
 	
-	public void setNormalizer(Normalizer n)
+	public void setNormalizerFactory(NormalizerFactory n)
 	{
-		normalizer = n;
+		normalizerFactory = n;
 		
 	}
 	
-	public Normalizer getNormalizer()
+	public NormalizerFactory getNormalizerFactory()
 	{
-		return normalizer;
+		return normalizerFactory;
 	}
 	
 	public OWLOntologyLoaderConfiguration getOntologyLoaderConfiguration()

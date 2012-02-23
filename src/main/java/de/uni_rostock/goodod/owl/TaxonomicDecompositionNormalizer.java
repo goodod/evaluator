@@ -36,14 +36,18 @@ import org.semanticweb.owlapi.model.*;
  */
 public class TaxonomicDecompositionNormalizer extends ClassExpressionNamingNormalizer {
 
-	public TaxonomicDecompositionNormalizer(ClassExpressionNameProvider provider)
-	{
-		super(provider);
-	}
 	
-	public TaxonomicDecompositionNormalizer()
+	/**
+	 * @param o The ontology to normalize
+	 */
+	public TaxonomicDecompositionNormalizer(OWLOntology o) {
+		super(o);
+	}
+
+	
+	public TaxonomicDecompositionNormalizer(OWLOntology o, ClassExpressionNameProvider prvd)
 	{
-		super();
+		super(o, prvd);
 	}
 	
 	// The superclass implementation of normalize() does "the right thing"™.

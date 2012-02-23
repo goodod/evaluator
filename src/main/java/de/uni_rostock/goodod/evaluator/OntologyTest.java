@@ -159,14 +159,13 @@ public class OntologyTest {
 		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     	Set<URI> allOntologies = new HashSet<URI>(25);
     	OntologyCache cache = new OntologyCache(bioTopLiteURI, getIgnoredImports());
-    	Normalizer importer = new BasicImportingNormalizer(cache.getOntologyLoaderConfiguration());
-		((BasicImportingNormalizer)importer).setImportMappings(importMap);
+    	NormalizerFactory importer = new BasicImportingNormalizerFactory(importMap, cache.getOntologyLoaderConfiguration());
 		ClassExpressionNameProvider provider = new ClassExpressionNameProvider();
-		Normalizer namer = new ClassExpressionNamingNormalizer(provider);
-		Normalizer decomposer = new TaxonomicDecompositionNormalizer(provider);
-		Normalizer subsumer = new SubsumptionMaterializationNormalizer();
-		NormalizerChain chain = new NormalizerChain(importer, namer, decomposer, subsumer);
-		cache.setNormalizer(chain);
+		NormalizerFactory namer = new ClassExpressionNamingNormalizerFactory(provider);
+		NormalizerFactory decomposer = new TaxonomicDecompositionNormalizerFactory(provider);
+		NormalizerFactory subsumer = new SubsumptionMaterializationNormalizerFactory();
+		NormalizerChainFactory chain = new NormalizerChainFactory(importer, namer, decomposer, subsumer);
+		cache.setNormalizerFactory(chain);
 		
 		writeNormalizedOntologiesTo(Collections.singleton(bioTopLiteURI), cache, new File(System.getProperty("java.io.tmpdir")));
     	

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 /**
@@ -53,10 +52,10 @@ public class NormalizerChain implements Normalizer {
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology)
 	 */
 	@Override
-	public void normalize(OWLOntology ont) throws OWLOntologyCreationException {
+	public void normalize() throws OWLOntologyCreationException {
 		for (Normalizer n : normalizers)
 		{
-			n.normalize(ont);
+			n.normalize();
 		}
 	}
 
@@ -64,11 +63,11 @@ public class NormalizerChain implements Normalizer {
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology, java.util.Set)
 	 */
 	@Override
-	public void normalize(OWLOntology ont, Set<IRI> IRIs)
+	public void normalize(Set<IRI> IRIs)
 			throws OWLOntologyCreationException {
 		for (Normalizer n : normalizers)
 		{
-			n.normalize(ont,IRIs);
+			n.normalize(IRIs);
 		}
 	}
 	

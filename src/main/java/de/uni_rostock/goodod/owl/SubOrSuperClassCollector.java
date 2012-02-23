@@ -1,7 +1,7 @@
 /**
   Copyright (C) 2011 The University of Rostock.
  
-  Written by:  thebeing
+  Written by:  Niels Grewe
   Created: 22.12.2011
   
   This program is free software; you can redistribute it and/or

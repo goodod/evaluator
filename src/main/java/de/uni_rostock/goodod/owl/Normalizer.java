@@ -31,18 +31,16 @@ public interface Normalizer {
   
 
 	/**
-	 * Normalizes the named ontology.
-	 * 
-	 * @param ont The ontology to be normalized.
+	 * Executes the normalization process
+	 * .
 	 */
-	void normalize(OWLOntology ont) throws OWLOntologyCreationException ;
+	void normalize() throws OWLOntologyCreationException ;
 	
 	/**
 	 * Normalizes the ontology by just taking into account the entities related
 	 * to the named IRIs.
 	 * 
-	 * @param ont The ontology to benormalized.
 	 * @param IRIs The IRIs to consider when normalizing
 	 */
-	void normalize(OWLOntology ont, Set<IRI>IRIs) throws OWLOntologyCreationException ;
+	void normalize(Set<IRI>IRIs) throws OWLOntologyCreationException ;
 }

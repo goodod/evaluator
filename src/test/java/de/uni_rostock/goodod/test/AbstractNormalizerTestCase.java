@@ -20,7 +20,7 @@ package de.uni_rostock.goodod.test;
 import org.junit.*;
 import org.semanticweb.owlapi.model.*;
 
-import de.uni_rostock.goodod.owl.Normalizer;
+import de.uni_rostock.goodod.owl.NormalizerFactory;
 
 /**
  * @author Niels Grewe
@@ -29,7 +29,7 @@ import de.uni_rostock.goodod.owl.Normalizer;
 public abstract class AbstractNormalizerTestCase extends AbstractTestCase {
 
 	protected OWLOntology ontology;
-	protected Normalizer normalizer;
+	protected NormalizerFactory normalizer;
 	protected final IRI biotopCanonical = IRI.create("http://purl.org/biotop/biotoplite.owl");
 	protected final IRI biotopA = IRI.create("http://purl.org/biotop/biotoplite_group_A_TEST.owl");
 	protected final IRI biotopB = IRI.create("http://purl.org/biotop/biotoplite_group_B_TEST.owl");

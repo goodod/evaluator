@@ -57,7 +57,7 @@ public class OntologyPair {
 		return cache.getOntologyLoaderConfiguration();
 	}
 	
-	public void normalizeWithNormalizer(Normalizer normalizer) throws OWLOntologyCreationException
+	public void normalizeWithNormalizerFactory(NormalizerFactory normalizer) throws OWLOntologyCreationException
 	{
 		try
 		{
@@ -70,7 +70,7 @@ public class OntologyPair {
 		}
 	}
 	
-	public void normalizeWithNormalizer(Normalizer normalizer, Set<IRI>IRIsToConsider) throws OWLOntologyCreationException
+	public void normalizeWithNormalizerFactory(NormalizerFactory normalizer, Set<IRI>IRIsToConsider) throws OWLOntologyCreationException
 	{
 		try
 		{
