@@ -25,9 +25,9 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.reasoner.ConsoleProgressMonitor;
+
 import org.semanticweb.owlapi.reasoner.InferenceType;
-import org.semanticweb.owlapi.reasoner.ReasonerProgressMonitor;
+
 import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.HermiT.Configuration.ExistentialStrategyType;
 import org.semanticweb.HermiT.Configuration.TableauMonitorType;
@@ -51,9 +51,9 @@ public class SubsumptionMaterializationNormalizer extends AbstractNormalizer {
 		super(ont);
 		Configuration reasonerConfig = new Configuration();
 		reasonerConfig.throwInconsistentOntologyException = false;
-		ReasonerProgressMonitor monitor = new ConsoleProgressMonitor();
+		//ReasonerProgressMonitor monitor = new ConsoleProgressMonitor();
 		reasonerConfig.existentialStrategyType = ExistentialStrategyType.INDIVIDUAL_REUSE;
-		reasonerConfig.reasonerProgressMonitor = monitor;
+		//reasonerConfig.reasonerProgressMonitor = monitor;
 		reasonerConfig.tableauMonitorType = TableauMonitorType.NONE;
 		//reasonerConfig.individualTaskTimeout = 10000;
 		reasoner = new Reasoner(reasonerConfig, ontology);
@@ -112,10 +112,7 @@ public class SubsumptionMaterializationNormalizer extends AbstractNormalizer {
 			manager.applyChanges(new ArrayList<OWLOntologyChange>(changes));
 		}
 		changes.clear();
-		if (null != reasoner)
-		{
-			reasoner.flush();
-		}
+
 	}
 	
 	private void finish()

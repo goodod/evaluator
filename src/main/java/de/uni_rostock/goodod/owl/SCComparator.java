@@ -20,6 +20,7 @@ package de.uni_rostock.goodod.owl;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.semanticweb.owlapi.model.*;
 
@@ -50,14 +51,14 @@ public class SCComparator implements Comparator {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Comparator#compare()
 	 */
-	public FMeasureComparisonResult compare() {
+	public FMeasureComparisonResult compare() throws InterruptedException, ExecutionException {
 		return compareClasses(pair.getOntologyA().getClassesInSignature(includeImports));
 	}
 
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Comparator#compare(java.util.Set)
 	 */
-	public FMeasureComparisonResult compare(Set<IRI> classIRIs) {
+	public FMeasureComparisonResult compare(Set<IRI> classIRIs) throws InterruptedException, ExecutionException {
 		Set<OWLClass> classes = new HashSet<OWLClass>();
 		for (OWLClass c : pair.getOntologyA().getClassesInSignature(includeImports))
 		{
@@ -73,8 +74,10 @@ public class SCComparator implements Comparator {
 	 * Primary method that performs the actual computation.
 	 * @param classes The classes from ontology A to use for the comparison.
 	 * @return The result of the comparison.
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
-	protected FMeasureComparisonResult compareClasses(Set<OWLClass>classes)
+	protected FMeasureComparisonResult compareClasses(Set<OWLClass>classes) throws InterruptedException, ExecutionException
 	{
 		double classCount = classes.size();
 		double precisionAccumulator = 0;

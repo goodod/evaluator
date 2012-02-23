@@ -18,6 +18,7 @@
 package de.uni_rostock.goodod.owl;
 
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.semanticweb.owlapi.model.IRI;
 
@@ -32,7 +33,7 @@ public interface Comparator {
 	 *
 	 * @returns A parameterized result for the comparison.
 	 */
-	ComparisonResult compare();
+	ComparisonResult compare() throws InterruptedException, ExecutionException;
 	
 	/**
 	 * Performs a comparison over the named set of class IRIs.
@@ -40,5 +41,5 @@ public interface Comparator {
 	 * @param classIRIs The class IRIs to consider for the comparison.
 	 * @return A parameteried result for the comparison.
 	 */
-	ComparisonResult compare(Set<IRI>classIRIs);
+	ComparisonResult compare(Set<IRI>classIRIs) throws InterruptedException, ExecutionException;
 }

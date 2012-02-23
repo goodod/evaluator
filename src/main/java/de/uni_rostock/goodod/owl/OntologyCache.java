@@ -53,11 +53,14 @@ public class OntologyCache {
 	private final Map<URI,FutureTask<OWLOntology>> futures;
 	private static Log logger = LogFactory.getLog(OntologyCache.class);
 	private NormalizerFactory normalizerFactory;
+	private int pendingFutures;
+
 	
 	public OntologyCache(URI commonBioTopLiteURI, Set<IRI>importsToIgnore)
 	{
 
 		threadCount = Configuration.getConfiguration().getInt("threadCount");
+		pendingFutures = 0;
 		executor = Executors.newFixedThreadPool(threadCount);
 		OWLOntologyLoaderConfiguration interimConfig = new OWLOntologyLoaderConfiguration();
 		for (IRI theIRI : importsToIgnore)
@@ -71,7 +74,7 @@ public class OntologyCache {
 		futures = new HashMap<URI,FutureTask<OWLOntology>>(24);
 	}
 	
-	public OWLOntology getOntologyAtURI(URI theURI) throws OWLOntologyCreationException
+	public OWLOntology getOntologySynchronouslyAtURI(URI theURI) throws OWLOntologyCreationException
 	{
 		OWLOntology ontology = getOldOntologyAtURI(theURI);
 		if (null == ontology)
@@ -92,10 +95,7 @@ public class OntologyCache {
 	private synchronized void putOntologyAtURI(URI u, OWLOntology ontology)
 	{
 		ontologies.put(u, ontology);
-		if (futures.containsKey(u))
-		{
-			futures.remove(u);
-		}
+		pendingFutures--;
 	}
 	private synchronized OWLOntology getOldOntologyAtURI(URI theURI) throws OWLOntologyCreationException
 	{
@@ -104,11 +104,31 @@ public class OntologyCache {
 	public synchronized void removeOntologyAtURI(URI u)
 	{
 		ontologies.remove(u);
+		futures.remove(u);
 	}
 	
 	public synchronized void flushCache()
 	{
 		ontologies.clear();
+		futures.clear();
+	}
+	
+	public FutureTask<OWLOntology> getOntologyAtURI(URI theURI) throws OWLOntologyCreationException
+	{
+		int waitCount = 0;
+		while (pendingFutures > threadCount)
+		{
+			if (0 == ++waitCount % 8 )
+			{
+				
+				/* 
+				 * Thight loop a few times, then yield in order to let
+				 * the other threads finish.
+				 */
+				Thread.yield();
+			}
+		}
+		return getOntologyFutureAtURI(theURI);
 	}
 	
 	private synchronized FutureTask<OWLOntology> getOntologyFutureAtURI(final URI u) throws OWLOntologyCreationException
@@ -142,10 +162,13 @@ public class OntologyCache {
 						{
 							throw new ExecutionException(e);
 						}
+						// When we put the plain ontology back, we also mark the future as done.
 						putOntologyAtURI(u, ontology);
 						return ontology;
 					}});
 		futures.put(u, future);
+		// We track our pending futures
+		pendingFutures++;
 		executor.execute(future);
 		
 		return future;

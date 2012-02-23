@@ -17,6 +17,8 @@
  */
 package de.uni_rostock.goodod.owl;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * @author Niels Grewe <niels.grewe@uni-rostock.de>
  *
@@ -25,7 +27,7 @@ public class FMeasureComparisonResult extends ComparisonResult {
 
 	private double precision;
 	private double recall;
-	FMeasureComparisonResult(String method, OntologyPair thePair, double thePrecision, double theRecall)
+	FMeasureComparisonResult(String method, OntologyPair thePair, double thePrecision, double theRecall) throws InterruptedException, ExecutionException
 	{
 		super(method, thePair);
 		precision = thePrecision;

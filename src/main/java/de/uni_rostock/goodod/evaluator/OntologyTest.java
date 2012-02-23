@@ -63,6 +63,7 @@ public class OntologyTest {
 	private URI modelOntology;
 	private Set<URI> groupAOntologies;
 	private Set<URI> groupBOntologies;
+	private Map<URI,Set<URI>> failedComparisons;
 	private URI bioTopLiteURI;
 	private Map<IRI,IRI>importMap;
 	private Set<IRI>testIRIs;
@@ -98,6 +99,7 @@ public class OntologyTest {
 		modelOntology = modelFile.toURI();
 		groupAOntologies = new HashSet<URI>(12);
 		groupBOntologies = new HashSet<URI>(12);
+		failedComparisons = new HashMap<URI,Set<URI>>();
 		SubnodeConfiguration studentOntConf = testConfig.configurationAt("studentOntologies");
 		for (String fileName : studentOntConf.getStringArray("groupA"))
 		{
@@ -167,8 +169,10 @@ public class OntologyTest {
 		NormalizerChainFactory chain = new NormalizerChainFactory(importer, namer, decomposer, subsumer);
 		cache.setNormalizerFactory(chain);
 		
-		writeNormalizedOntologiesTo(Collections.singleton(bioTopLiteURI), cache, new File(System.getProperty("java.io.tmpdir")));
-    	
+		if (logger.isDebugEnabled())
+		{
+			writeNormalizedOntologiesTo(Collections.singleton(bioTopLiteURI), cache, new File(System.getProperty("java.io.tmpdir")));
+		}
     	allOntologies.addAll(groupAOntologies);
     	allOntologies.addAll(groupBOntologies);
     	allOntologies.add(modelOntology);
@@ -198,8 +202,26 @@ public class OntologyTest {
     				}
     			}
     			comparisonStarted();
-    			OntologyPair p = new OntologyPair(cache, u1, u2);
-    			executor.execute(new ComparisonRunner(u1, u2, p));
+    			try
+    			{
+    				OntologyPair p = new OntologyPair(cache, u1, u2);
+    				executor.execute(new ComparisonRunner(u1, u2, p));
+    			}
+    			catch (Throwable e)
+    			{
+    				logger.warn("Could not compare " + u1.toString() + " and " + u2.toString()+ ".", e);
+    				Set<URI>values = failedComparisons.get(u1);
+    				if (null != values)
+    				{
+    					values.add(u2);
+    				}
+    				else
+    				{
+    					values = new HashSet<URI>();
+    					values.add(u2);
+    					failedComparisons.put(u2, values);
+    				}
+    			}
     		}
  
     	}
@@ -228,7 +250,7 @@ public class OntologyTest {
 		{
 			try
 			{
-				writeNormalizedOntologyTo(u, cache.getOntologyAtURI(u), directory);
+				writeNormalizedOntologyTo(u, cache.getOntologyAtURI(u).get(), directory);
 			}
 			catch (Throwable e)
 			{
@@ -263,18 +285,28 @@ public class OntologyTest {
 			
     		CSCComparator comp = new CSCComparator(pair, considerImports);
     		FMeasureComparisonResult res = null;
-    		if (null == testIRIs)
+    		try
     		{
-    			res = comp.compare();
+    			if (null == testIRIs)
+    			{
+    				res = comp.compare();
+    			}
+    			else
+    			{
+    				res = comp.compare(testIRIs);
+    			}
     		}
-    		else
+    		catch (Throwable e)
     		{
-    			res = comp.compare(testIRIs);
+    			logger.warn("Problem in comparison", e);
+    			return;
     		}
-    	
+    		finally
+    		{
+        		pair = null;
+    			comparisonDone();
+    		}
     		pushResult(o1, o2, res);
-    		pair = null;
-    		comparisonDone();
 		}
 	}
 	
@@ -379,7 +411,7 @@ public class OntologyTest {
 	
 	public TestResult getTestResultBetween(Set<URI> computed, Set<URI> reference)
 	{
-		
+		//FIXME: Ignore failed comparisons
 		int i = 0;
 		double pre = 0;
 		double rec = 0;

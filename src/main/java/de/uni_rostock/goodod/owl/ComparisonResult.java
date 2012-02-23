@@ -18,6 +18,8 @@
 
 package de.uni_rostock.goodod.owl;
 
+import java.util.concurrent.ExecutionException;
+
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -28,7 +30,7 @@ public abstract class ComparisonResult
 	private IRI ontologyA;
 	private IRI ontologyB;
 	private String comparisonMethod;
-	public ComparisonResult(String method, OntologyPair aPair)
+	public ComparisonResult(String method, OntologyPair aPair) throws InterruptedException, ExecutionException
 	{
 		OWLOntology ontA = aPair.getOntologyA();
 		OWLOntology ontB = aPair.getOntologyB();

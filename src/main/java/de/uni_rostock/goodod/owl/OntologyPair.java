@@ -19,15 +19,16 @@
 package de.uni_rostock.goodod.owl;
 
 import java.net.URI;
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import org.semanticweb.owlapi.model.*;
 
 
 public class OntologyPair {
 	private OntologyCache cache;
-	private OWLOntology ontologyA;
-	private OWLOntology ontologyB;
+	private FutureTask<OWLOntology> ontologyA;
+	private FutureTask<OWLOntology> ontologyB;
 	
 	public OntologyPair(OntologyCache theCache, URI ontA, URI ontB) throws OWLOntologyCreationException
 	{	
@@ -43,13 +44,13 @@ public class OntologyPair {
 			throw exception;
 		}
 	}
-	public OWLOntology getOntologyA()
+	public OWLOntology getOntologyA() throws InterruptedException, ExecutionException
 	{
-		return ontologyA;
+		return ontologyA.get();
 	}
-	public OWLOntology getOntologyB()
+	public OWLOntology getOntologyB() throws InterruptedException, ExecutionException
 	{
-		return ontologyB;
+		return ontologyB.get();
 	}
 	
 	public OWLOntologyLoaderConfiguration getLoaderConfiguration()
@@ -57,37 +58,21 @@ public class OntologyPair {
 		return cache.getOntologyLoaderConfiguration();
 	}
 	
-	public void normalizeWithNormalizerFactory(NormalizerFactory normalizer) throws OWLOntologyCreationException
-	{
-		try
-		{
-			normalizer.normalize(ontologyA);
-			normalizer.normalize(ontologyB);
-		}
-		catch (OWLOntologyCreationException exception)
-		{
-			throw exception;
-		}
-	}
-	
-	public void normalizeWithNormalizerFactory(NormalizerFactory normalizer, Set<IRI>IRIsToConsider) throws OWLOntologyCreationException
-	{
-		try
-		{
-			normalizer.normalize(ontologyA, IRIsToConsider);
-			normalizer.normalize(ontologyB, IRIsToConsider);
-		}
-		catch (OWLOntologyCreationException e)
-		{
-			throw e;
-		}
-	}
 	
 	@Override
 	public String toString()
 	{
-		OWLOntologyManager manA = ontologyA.getOWLOntologyManager();
-		OWLOntologyManager manB = ontologyB.getOWLOntologyManager();
-		return manA.getOntologyDocumentIRI(ontologyA).toQuotedString().concat(" against ").concat(manB.getOntologyDocumentIRI(ontologyB).toQuotedString());
+		String desc = "";
+		try
+		{
+			OWLOntologyManager manA = ontologyA.get().getOWLOntologyManager();
+			OWLOntologyManager manB = ontologyB.get().getOWLOntologyManager();
+			desc = manA.getOntologyDocumentIRI(ontologyA.get()).toQuotedString().concat(" against ").concat(manB.getOntologyDocumentIRI(ontologyB.get()).toQuotedString());
+		}
+		catch (Throwable e)
+		{
+			
+		}
+		return desc;
 	}
 }
