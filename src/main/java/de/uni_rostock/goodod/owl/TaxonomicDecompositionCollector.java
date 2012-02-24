@@ -148,12 +148,12 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 		Set<OWLClassExpression> existing = queueMap.get(activeStack);
 		if (null == existing)
 		{
-			queueMap.put(activeStack, arg0.getOperands());
+			existing = new HashSet<OWLClassExpression>();
+			queueMap.put(activeStack,existing);
 		}
-		else
-		{
-			existing.addAll(arg0.getOperands());
-		}
+		
+		existing.addAll(arg0.getOperands());
+	
 	}
 
 	/* (non-Javadoc)
@@ -164,12 +164,11 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 		Set<OWLClassExpression> existing = queueMap.get(activeStack);
 		if (null == existing)
 		{
-			queueMap.put(activeStack, arg0.getOperands());
+			existing = new HashSet<OWLClassExpression>();
+			queueMap.put(activeStack, existing);
 		}
-		else
-		{
-			existing.addAll(arg0.getOperands());
-		}
+		existing.addAll(arg0.getOperands());
+		
 	}
 
 	/* (non-Javadoc)
@@ -177,7 +176,7 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	 */
 	@Override
 	public void visit(OWLObjectComplementOf arg0) {
-		queueMap.put(nextStack(arg0),Collections.singleton(arg0.getOperand()));
+		queueMap.put(nextStack(arg0),new HashSet<OWLClassExpression>(Collections.singleton(arg0.getOperand())));
 	}
 
 	/* (non-Javadoc)
@@ -185,7 +184,7 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	 */
 	@Override
 	public void visit(OWLObjectSomeValuesFrom arg0) {
-		queueMap.put(nextStack(arg0), Collections.singleton(arg0.getFiller()));
+		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));
 	}
 
 	/* (non-Javadoc)
@@ -193,7 +192,7 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	 */
 	@Override
 	public void visit(OWLObjectAllValuesFrom arg0) {
-		queueMap.put(nextStack(arg0), Collections.singleton(arg0.getFiller()));		
+		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));		
 	}
 
 	/* (non-Javadoc)
@@ -210,7 +209,7 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	 */
 	@Override
 	public void visit(OWLObjectMinCardinality arg0) {
-		queueMap.put(nextStack(arg0), Collections.singleton(arg0.getFiller()));	
+		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));	
 	}
 
 	/* (non-Javadoc)
@@ -218,7 +217,7 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	 */
 	@Override
 	public void visit(OWLObjectExactCardinality arg0) {
-		queueMap.put(nextStack(arg0), Collections.singleton(arg0.getFiller()));
+		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));
 	}
 
 	/* (non-Javadoc)
@@ -226,7 +225,7 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	 */
 	@Override
 	public void visit(OWLObjectMaxCardinality arg0) {
-		queueMap.put(nextStack(arg0), Collections.singleton(arg0.getFiller()));
+		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));
 	}
 
 	/* (non-Javadoc)
