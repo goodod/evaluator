@@ -22,14 +22,11 @@ import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.SimpleIRIMapper;
-
-import de.uni_rostock.goodod.tools.Configuration;
-
 
 
 import java.io.File;
 import java.net.URI;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
@@ -48,18 +45,16 @@ public class OntologyCache {
 	private final int threadCount;
 	private ExecutorService executor;
 	private final OWLOntologyLoaderConfiguration config;
-	private final SimpleIRIMapper bioTopLiteMapper;
-	private final Map<URI,OWLOntology> ontologies;
+	private final Set<OWLOntologyIRIMapper> mappers;
 	private final Map<URI,FutureTask<OWLOntology>> futures;
 	private static Log logger = LogFactory.getLog(OntologyCache.class);
 	private NormalizerFactory normalizerFactory;
 	private int pendingFutures;
 
 	
-	public OntologyCache(URI commonBioTopLiteURI, Set<IRI>importsToIgnore)
+	public OntologyCache(Set<OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
 	{
-
-		threadCount = Configuration.getConfiguration().getInt("threadCount");
+		threadCount = threads;
 		pendingFutures = 0;
 		executor = Executors.newFixedThreadPool(threadCount);
 		OWLOntologyLoaderConfiguration interimConfig = new OWLOntologyLoaderConfiguration();
@@ -68,48 +63,55 @@ public class OntologyCache {
 			interimConfig = interimConfig.addIgnoredImport(theIRI);
 		}
 		config = interimConfig.setSilentMissingImportsHandling(true);
-		bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(commonBioTopLiteURI));
-	
-		ontologies = new HashMap<URI,OWLOntology>(24);
+		mappers = IRIMappers;
 		futures = new HashMap<URI,FutureTask<OWLOntology>>(24);
 	}
 	
 	public OWLOntology getOntologySynchronouslyAtURI(URI theURI) throws OWLOntologyCreationException
 	{
-		OWLOntology ontology = getOldOntologyAtURI(theURI);
-		if (null == ontology)
+		OWLOntology ontology = null;
+		FutureTask<OWLOntology>ontologyFuture = getOntologyFutureAtURI(theURI);
+		try
 		{
-			FutureTask<OWLOntology>ontologyFuture = getOntologyFutureAtURI(theURI);
-			try
-			{
-				ontology = ontologyFuture.get();
-			}
-			catch (Throwable e)
-			{
-				logger.warn("Could not load ontology", e);
-			}
+			ontology = ontologyFuture.get();
 		}
+		catch (Throwable e)
+		{
+			logger.warn("Could not load ontology", e);
+		}
+
 		return ontology;
 	}
 	
-	private synchronized void putOntologyAtURI(URI u, OWLOntology ontology)
+	private synchronized void futureDone()
 	{
-		ontologies.put(u, ontology);
 		pendingFutures--;
 	}
-	private synchronized OWLOntology getOldOntologyAtURI(URI theURI) throws OWLOntologyCreationException
-	{
-		return ontologies.get(theURI);
-	}
+
 	public synchronized void removeOntologyAtURI(URI u)
 	{
-		ontologies.remove(u);
+		FutureTask<OWLOntology> future = futures.get(u);
+		if (null == future)
+		{
+			return;
+		}
+		else if (false == future.isDone())
+		{
+			future.cancel(true);
+		}
 		futures.remove(u);
 	}
 	
 	public synchronized void flushCache()
 	{
-		ontologies.clear();
+		for (Entry<URI, FutureTask<OWLOntology>> f : futures.entrySet())
+		{
+			FutureTask<OWLOntology> future = f.getValue();
+			if (false == future.isDone())
+			{
+				future.cancel(true);
+			}
+		}
 		futures.clear();
 	}
 	
@@ -145,7 +147,10 @@ public class OntologyCache {
 					public OWLOntology call() throws ExecutionException
 					{
 						OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-						manager.addIRIMapper(bioTopLiteMapper);
+						for (OWLOntologyIRIMapper m : mappers)
+						{
+							manager.addIRIMapper(m);
+						}
 						FileDocumentSource source = new FileDocumentSource(new File(u));
 						OWLOntology ontology;
 						try 
@@ -162,8 +167,8 @@ public class OntologyCache {
 						{
 							throw new ExecutionException(e);
 						}
-						// When we put the plain ontology back, we also mark the future as done.
-						putOntologyAtURI(u, ontology);
+						// Mark this future as done.
+						futureDone();
 						return ontology;
 					}});
 		futures.put(u, future);

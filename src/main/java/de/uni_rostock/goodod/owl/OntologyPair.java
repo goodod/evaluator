@@ -27,16 +27,18 @@ import org.semanticweb.owlapi.model.*;
 
 public class OntologyPair {
 	private OntologyCache cache;
-	private FutureTask<OWLOntology> ontologyA;
-	private FutureTask<OWLOntology> ontologyB;
+	private FutureTask<OWLOntology> futureA;
+	private FutureTask<OWLOntology> futureB;
+	private OWLOntology ontologyA;
+	private OWLOntology ontologyB;
 	
 	public OntologyPair(OntologyCache theCache, URI ontA, URI ontB) throws OWLOntologyCreationException
 	{	
 		cache = theCache;
 		try
 		{
-			ontologyA = cache.getOntologyAtURI(ontA);
-			ontologyB = cache.getOntologyAtURI(ontB);
+			futureA = cache.getOntologyAtURI(ontA);
+			futureB = cache.getOntologyAtURI(ontB);
 		}
 		catch (OWLOntologyCreationException exception)
 		{
@@ -46,11 +48,19 @@ public class OntologyPair {
 	}
 	public OWLOntology getOntologyA() throws InterruptedException, ExecutionException
 	{
-		return ontologyA.get();
+		if (null == ontologyA)
+		{
+			ontologyA = futureA.get();
+		}
+		return ontologyA;
 	}
 	public OWLOntology getOntologyB() throws InterruptedException, ExecutionException
 	{
-		return ontologyB.get();
+		if (null == ontologyB)
+		{
+			ontologyB = futureB.get();
+		}
+		return ontologyB;
 	}
 	
 	public OWLOntologyLoaderConfiguration getLoaderConfiguration()
@@ -65,13 +75,13 @@ public class OntologyPair {
 		String desc = "";
 		try
 		{
-			OWLOntologyManager manA = ontologyA.get().getOWLOntologyManager();
-			OWLOntologyManager manB = ontologyB.get().getOWLOntologyManager();
-			desc = manA.getOntologyDocumentIRI(ontologyA.get()).toQuotedString().concat(" against ").concat(manB.getOntologyDocumentIRI(ontologyB.get()).toQuotedString());
+			OWLOntologyManager manA = getOntologyA().getOWLOntologyManager();
+			OWLOntologyManager manB = getOntologyB().getOWLOntologyManager();
+			desc = manA.getOntologyDocumentIRI(getOntologyA()).toQuotedString().concat(" against ").concat(manB.getOntologyDocumentIRI(getOntologyB()).toQuotedString());
 		}
 		catch (Throwable e)
 		{
-			
+			desc = "Indescriptible pair.";
 		}
 		return desc;
 	}

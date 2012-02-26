@@ -44,6 +44,7 @@ import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
 import de.uni_rostock.goodod.owl.*;
 import de.uni_rostock.goodod.tools.Configuration;
@@ -160,7 +161,8 @@ public class OntologyTest {
     	
 		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     	Set<URI> allOntologies = new HashSet<URI>(25);
-    	OntologyCache cache = new OntologyCache(bioTopLiteURI, getIgnoredImports());
+    	OWLOntologyIRIMapper bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(bioTopLiteURI));
+    	OntologyCache cache = new OntologyCache(Collections.singleton(bioTopLiteMapper), getIgnoredImports(), threadCount);
     	NormalizerFactory importer = new BasicImportingNormalizerFactory(importMap, cache.getOntologyLoaderConfiguration());
 		ClassExpressionNameProvider provider = new ClassExpressionNameProvider();
 		NormalizerFactory namer = new ClassExpressionNamingNormalizerFactory(provider);

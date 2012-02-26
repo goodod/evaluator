@@ -2,7 +2,7 @@ GoodOD Ontology Evaluator
 
 Copyright (C) 2011–2012 The University of Rostock.
 
-Usage Instructions:
+Installation and Usage Instructions:
 
 * Get a working maven installation to build the evaluator.
 * Build and install the owlapi-distribution artifact with maven.
@@ -16,6 +16,13 @@ Usage Instructions:
   <http://support.microsoft.com/kb/310519>) to the directory containing the
   GoodOD svn repository.
 * Run the jar file with `java -jar' and the test description plist as an argument.
+
+Scope of Classes from the GoodOD Ontology Evaluator:
+
+Classes from the packages de.uni_rostock.goodod.checker and
+de.uni_rostock.goodod.evaluator are specific to evaluation tasks in the GoodOD
+project. The classes from de.uni_rostock.goodod.owl are, however, independent
+of GoodOD specifics and can be reused for other similarity measurement tasks.
 
 License:
 
