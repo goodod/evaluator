@@ -26,36 +26,36 @@ import java.util.Set;
  */
 public class TestResult {
 
-	private int count;
+	private int precisionCount;
+	private int recallCount;
 	private double accumulatedPrecision;
 	private double accumulatedRecall;
-	private double accumulatedFMeasure;
 	private Set<URI>computed;
 	private Set<URI>reference;
 
-	public TestResult(int c, double p, double r, double f, Set<URI>comp, Set<URI> ref)
+	public TestResult(int preCount, double p, int recCount, double r, Set<URI>comp, Set<URI> ref)
 	{
-		count = c;
+		precisionCount = preCount;
 		accumulatedPrecision = p;
+		recallCount = recCount;
 		accumulatedRecall = r;
-		accumulatedFMeasure = f;
 		computed = comp;
 		reference = ref;
 	}
 	
 	public double getMeanPrecision()
 	{
-		return accumulatedPrecision/count;
+		return accumulatedPrecision/precisionCount;
 	}
 	
 	public double getMeanRecall()
 	{
-		return accumulatedRecall/count;
+		return accumulatedRecall/recallCount;
 	}
 	
 	public double getMeanFMeasure()
 	{
-		return accumulatedFMeasure/count;
+		return (2 * getMeanRecall() * getMeanPrecision())/ (getMeanRecall() + getMeanPrecision());
 	}
 	
 	public Set<URI> getReferenceSet()

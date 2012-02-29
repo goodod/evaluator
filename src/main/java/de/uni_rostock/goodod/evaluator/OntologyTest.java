@@ -166,6 +166,7 @@ public class OntologyTest {
     	NormalizerFactory importer = new BasicImportingNormalizerFactory(importMap, cache.getOntologyLoaderConfiguration());
 		ClassExpressionNameProvider provider = new ClassExpressionNameProvider();
 		NormalizerFactory namer = new ClassExpressionNamingNormalizerFactory(provider);
+		//FIXME: Normalize to build ObjectIntersectionOf() axioms from all separately stated superclasses
 		NormalizerFactory decomposer = new TaxonomicDecompositionNormalizerFactory(provider);
 		NormalizerFactory subsumer = new SubsumptionMaterializationNormalizerFactory();
 		NormalizerChainFactory chain = new NormalizerChainFactory(importer, namer, decomposer, subsumer);
@@ -414,10 +415,10 @@ public class OntologyTest {
 	public TestResult getTestResultBetween(Set<URI> computed, Set<URI> reference)
 	{
 		//FIXME: Ignore failed comparisons
-		int i = 0;
+		int iPre = 0;
+		int iRec = 0;
 		double pre = 0;
 		double rec = 0;
-		double fm = 0;
 		for (Map.Entry<URI,Map<URI,FMeasureComparisonResult>> e1 : resultMap.entrySet())
 		{
 			if (computed.contains(e1.getKey()))
@@ -427,15 +428,24 @@ public class OntologyTest {
 					if (reference.contains(e2.getKey()) &&
 						(false == e1.getKey().equals(e2.getKey())))
 					{
-						i++;
-						pre += e2.getValue().getPrecision();
-						rec += e2.getValue().getRecall();
-						fm  += e2.getValue().getFMeasure();
+						double thisPre = e2.getValue().getPrecision();
+						if (false == Double.isNaN(thisPre))
+						{
+							pre = pre + thisPre;
+							iPre++;
+						}
+						double thisRec = e2.getValue().getRecall();
+						if (false == Double.isNaN(thisRec))
+						{
+							rec = rec + thisRec;
+							iRec++;
+						}
 					}
 				}
 			}
 		}
-		return new TestResult(i,pre,rec,fm,reference,computed);
+		// FIXME: Precision/Recall for group internal is not quite right sometimes
+		return new TestResult(iPre, pre, iRec, rec, reference, computed);
 	}
 	
 	public TestResult getTestResultGroupAAgainstReference()
@@ -590,6 +600,10 @@ public class OntologyTest {
     	theTable = tableHeader(ontologyList) + '\n';
     	for (URI u : ontologyList)
     	{
+    		if (u.equals(modelOntology))
+    		{
+    			continue;
+    		}
     		theTable = theTable + tableLine(u, ontologyList, type) + '\n';
     	}
     	writer.write(theTable);
