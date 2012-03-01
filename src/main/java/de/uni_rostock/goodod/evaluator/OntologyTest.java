@@ -164,12 +164,12 @@ public class OntologyTest {
     	OWLOntologyIRIMapper bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(bioTopLiteURI));
     	OntologyCache cache = new OntologyCache(Collections.singleton(bioTopLiteMapper), getIgnoredImports(), threadCount);
     	NormalizerFactory importer = new BasicImportingNormalizerFactory(importMap, cache.getOntologyLoaderConfiguration());
-		ClassExpressionNameProvider provider = new ClassExpressionNameProvider();
+		NormalizerFactory intersector = new SuperClassConjunctionNormalizerFactory();
+    	ClassExpressionNameProvider provider = new ClassExpressionNameProvider();
 		NormalizerFactory namer = new ClassExpressionNamingNormalizerFactory(provider);
-		//FIXME: Normalize to build ObjectIntersectionOf() axioms from all separately stated superclasses
 		NormalizerFactory decomposer = new TaxonomicDecompositionNormalizerFactory(provider);
 		NormalizerFactory subsumer = new SubsumptionMaterializationNormalizerFactory();
-		NormalizerChainFactory chain = new NormalizerChainFactory(importer, namer, decomposer, subsumer);
+		NormalizerChainFactory chain = new NormalizerChainFactory(importer, intersector, namer, decomposer, subsumer);
 		cache.setNormalizerFactory(chain);
 		
 		if (logger.isDebugEnabled())

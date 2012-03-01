@@ -21,9 +21,12 @@ package de.uni_rostock.goodod.owl;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
@@ -49,5 +52,15 @@ public abstract class AbstractNormalizer extends  OWLAxiomVisitorAdapter impleme
 	public OWLOntology getOntology()
 	{
 		return ontology;
+	}
+	
+	public void normalize() throws OWLOntologyCreationException {
+
+		Set<OWLClass> classes = ontology.getClassesInSignature(true);
+		Set<IRI> IRIs = new HashSet<IRI>();
+		for (OWLClass c : classes) {
+			IRIs.add(c.getIRI());
+		}
+		normalize(IRIs);
 	}
 }
