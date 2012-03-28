@@ -52,7 +52,8 @@ public class SCComparator implements Comparator {
 	 * @see de.uni_rostock.goodod.owl.Comparator#compare()
 	 */
 	public FMeasureComparisonResult compare() throws InterruptedException, ExecutionException {
-		return compareClasses(pair.getOntologyA().getClassesInSignature(includeImports));
+		Set<IRI> noIRIs = Collections.emptySet();
+		return compareClasses(pair.getOntologyA().getClassesInSignature(includeImports), noIRIs);
 	}
 
 	/* (non-Javadoc)
@@ -60,39 +61,79 @@ public class SCComparator implements Comparator {
 	 */
 	public FMeasureComparisonResult compare(Set<IRI> classIRIs) throws InterruptedException, ExecutionException {
 		Set<OWLClass> classes = new HashSet<OWLClass>();
+		Set<IRI> found = new HashSet<IRI>();
+		Set<IRI> notFound = new HashSet<IRI>(classIRIs);
 		for (OWLClass c : pair.getOntologyA().getClassesInSignature(includeImports))
 		{
 					if(classIRIs.contains(c.getIRI()))
 					{
 						classes.add(c);
+						found.add(c.getIRI());
 					}
 		}
-		return compareClasses(classes);
+		notFound.removeAll(found);
+		return compareClasses(classes, notFound);
+	}
+
+	private static boolean notNaN(double d)
+	{
+		Double o = new Double(d);
+		return (false == o.isNaN());
 	}
 
 	/**
 	 * Primary method that performs the actual computation.
 	 * @param classes The classes from ontology A to use for the comparison.
+	 * @param notFound IRIs of classes that could not be found in the ontology
 	 * @return The result of the comparison.
 	 * @throws ExecutionException 
 	 * @throws InterruptedException 
 	 */
-	protected FMeasureComparisonResult compareClasses(Set<OWLClass>classes) throws InterruptedException, ExecutionException
+	protected FMeasureComparisonResult compareClasses(Set<OWLClass>classes, Set<IRI> notFound) throws InterruptedException, ExecutionException
 	{
-		double classCount = classes.size();
+		int classCount = classes.size() + notFound.size();
+		// Classes that are not available in the computed ontology by definition achieve maximum precision
+		// because they don't return any irrelevant concept.
 		double precisionAccumulator = 0;
 		double recallAccumulator = 0;
 		for (OWLClass classA : classes)
 		{
 			OWLClass classB = findClass(classA, pair.getOntologyB());
-			precisionAccumulator += getTaxonomicPrecision(classA, classB, pair.getOntologyA(), pair.getOntologyB());
+			double newPrec = getTaxonomicPrecision(classA, classB, pair.getOntologyA(), pair.getOntologyB());
 			// Lucky fact: precision of A vs. B is the same thing as recall B vs. A.
-			recallAccumulator += getTaxonomicPrecision(classB, classA, pair.getOntologyB(), pair.getOntologyA());
+			double newRec= getTaxonomicPrecision(classB, classA, pair.getOntologyB(), pair.getOntologyA());
+			if (notNaN(newPrec))
+			{
+				precisionAccumulator += newPrec;
+			}
+			if (notNaN(newRec))
+			{
+				recallAccumulator += newRec;
+			}
 		}
-		
-		double precision = precisionAccumulator / classCount;
-		double recall = recallAccumulator / classCount;
-		
+		for (OWLClass classB : pair.getOntologyB().getClassesInSignature(includeImports))
+		{
+			if (notFound.contains(classB.getIRI()))
+			{
+				OWLClass classA = findClass(classB, pair.getOntologyA());
+				double newPrec = getTaxonomicPrecision(classA, classB, pair.getOntologyA(), pair.getOntologyB());
+				// Lucky fact: precision of A vs. B is the same thing as recall B vs. A.
+				double newRec= getTaxonomicPrecision(classB, classA, pair.getOntologyB(), pair.getOntologyA());
+				if (notNaN(newPrec))
+				{
+					precisionAccumulator += newPrec;
+				}
+				if (notNaN(newRec))
+				{
+					recallAccumulator += newRec;
+				}
+
+			}	
+
+		}
+		double precision = precisionAccumulator / (double)classCount;
+		double recall = recallAccumulator / (double)classCount;
+	
 		return new FMeasureComparisonResult(getComparisonMethod(), pair, precision, recall);
 		
 	}
