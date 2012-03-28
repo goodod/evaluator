@@ -58,6 +58,7 @@ import de.uni_rostock.goodod.tools.Configuration;
 public class OntologyTest {
 
 	private final int threadCount;
+	private final String similarity;
 	private Configuration globalConfig;
 	private AbstractHierarchicalFileConfiguration testConfig;
 	private URI rawOntology;
@@ -78,7 +79,7 @@ public class OntologyTest {
 		// Get a reference to the global configuration:
 		globalConfig = Configuration.getConfiguration();
 		threadCount = globalConfig.getInt("threadCount");
-		
+		similarity = globalConfig.getString("similarity");
 		// Check whether we are loading an XML property list or a plain on for the test.
 		if (isXMLConfig(testDescription))
 		{
@@ -286,17 +287,29 @@ public class OntologyTest {
 		public void run()
 		{
 			
-    		CSCComparator comp = new CSCComparator(pair, considerImports);
+    		Comparator comp = null;
+		if (similarity.equals("sc"))
+		{
+			comp = new SCComparator(pair, considerImports);
+		}
+		else
+		{
+			comp = new CSCComparator(pair, considerImports);
+			if (false == similarity.equals("csc"))
+			{
+				logger.warn("Invalid similarity computation method '" + similarity + "'. Defaulting to csc. Please specify either sc or csc");
+			}
+		}	
     		FMeasureComparisonResult res = null;
     		try
     		{
     			if (null == testIRIs)
     			{
-    				res = comp.compare();
+    				res = (FMeasureComparisonResult)comp.compare();
     			}
     			else
     			{
-    				res = comp.compare(testIRIs);
+    				res = (FMeasureComparisonResult)comp.compare(testIRIs);
     			}
     		}
     		catch (Throwable e)

@@ -8,5 +8,7 @@
     groupB = "Results/GruppeB";
     };
   testDir = "docs/Testaufgaben";
-  threadCount = 2;
+  threadCount = 4;
+  similarity = "csc";
+
 }

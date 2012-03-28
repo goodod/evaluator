@@ -128,6 +128,7 @@ public class Configuration {
 		String configFile = "";
     	String testDescriptionFile = "";
     	String threadCount = null;
+	String similarity = null;
     	String repoRoot = System.getenv("GOODOD_REPO_ROOT");
     	Map<String,String> cfg = new HashMap<String,String>();
     	boolean gotConfig = false;
@@ -135,7 +136,8 @@ public class Configuration {
     	boolean gotThreadCount = false;
     	boolean expectConfigFile = false;
     	boolean expectThreadCount = false;
-    
+   	boolean expectSimilarity = false;
+	boolean gotSimilarity = false; 
     	cfg.put("repositoryRoot", repoRoot);
     	if (null == args)
     	{
@@ -147,9 +149,9 @@ public class Configuration {
     	 */
     	for (String arg : args)
     	{
-    		if ((false == gotConfig) || (false == gotThreadCount))
+    		if ((false == gotConfig) || (false == gotThreadCount) || (false == gotSimilarity)) 
     		{
-    			if ((false == expectConfigFile) && (false == expectThreadCount))
+    			if ((false == expectConfigFile) && (false == expectThreadCount) && (false == expectSimilarity))
     			{
     				if(arg.startsWith("-") && (2 == arg.length())) 
     				{
@@ -163,6 +165,11 @@ public class Configuration {
     						expectThreadCount = true;
     						continue;
     					}
+					else if (arg.endsWith("s"))
+					{
+						expectSimilarity = true;
+						continue;
+					}
     				}
     				else if(arg.startsWith("--config=") && (arg.length() > 9))
     				{
@@ -173,10 +180,15 @@ public class Configuration {
     				else if (arg.startsWith("--threadCount=") && (arg.length() > 14))
     				{
     					threadCount = arg.substring(14);
-    					expectThreadCount = true;
+    					gotThreadCount = true;
     					continue;
     					
     				}
+				else if (arg.startsWith("--similarity=") && (arg.length() > 13))
+				{
+					similarity= arg.substring(13);
+					gotSimilarity = true;
+				}
     			}
     			else if (true == expectConfigFile)
     			{
@@ -198,6 +210,17 @@ public class Configuration {
     					continue;
     				}
     			}
+			else if (true == expectSimilarity)
+			{
+				if (false == arg.isEmpty())
+				{
+					similarity = arg;
+					gotSimilarity = true;
+					expectSimilarity = false;
+					continue;
+
+				}
+			}
     		}
     		if (false == gotDescriptionFile)
     		{
@@ -218,6 +241,10 @@ public class Configuration {
     	{
     		cfg.put("threadCount", threadCount);
     	}
+	if (gotSimilarity)
+	{
+		cfg.put("similarity", similarity);
+	}
 
     	
 		return cfg;
