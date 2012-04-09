@@ -56,7 +56,12 @@ public class EvaluatorApp
     	}
     	
     	logger.info(theTest.toString());
-    	String baseName = testFile.substring(0, (testFile.length() - 6));
+	String similarityType = config.getString("similarity");
+	if (!(similarityType.equals("csc") || similarityType.equals("sc")))
+	{
+		similarityType = "csc";
+	}
+    	String baseName = similarityType + "-" + testFile.substring(0, (testFile.length() - 6));
     	File precisionFile =  new File(baseName + ".precision.csv");
     	File recallFile = new File(baseName + ".recall.csv");
     	File fmeasureFile = new File(baseName + ".fmeasure.csv");
