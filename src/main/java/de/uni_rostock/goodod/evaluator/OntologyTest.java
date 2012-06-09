@@ -357,7 +357,7 @@ public class OntologyTest {
 	private Set<IRI>getIRIsToTest()
 	{
 		OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
-		config = config.setSilentMissingImportsHandling(true);
+		config.setSilentMissingImportsHandling(true);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		FileDocumentSource rawSource = new FileDocumentSource(new File(rawOntology));
 		OWLOntology o = null;

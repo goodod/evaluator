@@ -58,11 +58,13 @@ public class OntologyCache {
 		pendingFutures = 0;
 		executor = Executors.newFixedThreadPool(threadCount);
 		OWLOntologyLoaderConfiguration interimConfig = new OWLOntologyLoaderConfiguration();
+		
 		for (IRI theIRI : importsToIgnore)
 		{
 			interimConfig = interimConfig.addIgnoredImport(theIRI);
 		}
-		config = interimConfig.setSilentMissingImportsHandling(true);
+		interimConfig.setSilentMissingImportsHandling(true);
+		config = interimConfig;
 		mappers = IRIMappers;
 		futures = new HashMap<URI,FutureTask<OWLOntology>>(24);
 	}

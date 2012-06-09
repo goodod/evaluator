@@ -51,7 +51,7 @@ public class NormalizerChain implements Normalizer {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology)
 	 */
-	@Override
+	
 	public void normalize() throws OWLOntologyCreationException {
 		for (Normalizer n : normalizers)
 		{
@@ -62,7 +62,7 @@ public class NormalizerChain implements Normalizer {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology, java.util.Set)
 	 */
-	@Override
+	
 	public void normalize(Set<IRI> IRIs)
 			throws OWLOntologyCreationException {
 		for (Normalizer n : normalizers)

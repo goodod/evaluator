@@ -40,7 +40,7 @@ public class ClassExpressionNamingNormalizerFactory extends
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.NormalizerFactory#getNormalizerForOntology(org.semanticweb.owlapi.model.OWLOntology)
 	 */
-	@Override
+	
 	public Normalizer getNormalizerForOntology(OWLOntology ont) {
 		// TODO Auto-generated method stub
 		return new ClassExpressionNamingNormalizer(ont, provider);

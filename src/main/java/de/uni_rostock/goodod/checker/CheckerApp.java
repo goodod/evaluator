@@ -114,7 +114,7 @@ public class CheckerApp
 			interimConfig = interimConfig.addIgnoredImport(ignoredIRI);
     	}
 		
-		interimConfig = interimConfig.setSilentMissingImportsHandling(true);
+		interimConfig.setSilentMissingImportsHandling(true);
 		try 
 		{
 			ontology = manager.loadOntologyFromOntologyDocument(source, interimConfig);

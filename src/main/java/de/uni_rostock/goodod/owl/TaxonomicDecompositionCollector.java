@@ -134,7 +134,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLClass)
 	 */
-	@Override
 	public void visit(OWLClass arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);
@@ -143,7 +142,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectIntersectionOf)
 	 */
-	@Override
 	public void visit(OWLObjectIntersectionOf arg0) {
 		Set<OWLClassExpression> existing = queueMap.get(activeStack);
 		if (null == existing)
@@ -159,7 +157,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectUnionOf)
 	 */
-	@Override
 	public void visit(OWLObjectUnionOf arg0) {
 		Set<OWLClassExpression> existing = queueMap.get(activeStack);
 		if (null == existing)
@@ -174,7 +171,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectComplementOf)
 	 */
-	@Override
 	public void visit(OWLObjectComplementOf arg0) {
 		queueMap.put(nextStack(arg0),new HashSet<OWLClassExpression>(Collections.singleton(arg0.getOperand())));
 	}
@@ -182,7 +178,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom)
 	 */
-	@Override
 	public void visit(OWLObjectSomeValuesFrom arg0) {
 		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));
 	}
@@ -190,7 +185,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectAllValuesFrom)
 	 */
-	@Override
 	public void visit(OWLObjectAllValuesFrom arg0) {
 		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));		
 	}
@@ -198,7 +192,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectHasValue)
 	 */
-	@Override
 	public void visit(OWLObjectHasValue arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);
@@ -207,7 +200,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectMinCardinality)
 	 */
-	@Override
 	public void visit(OWLObjectMinCardinality arg0) {
 		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));	
 	}
@@ -215,7 +207,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectExactCardinality)
 	 */
-	@Override
 	public void visit(OWLObjectExactCardinality arg0) {
 		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));
 	}
@@ -223,7 +214,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectMaxCardinality)
 	 */
-	@Override
 	public void visit(OWLObjectMaxCardinality arg0) {
 		queueMap.put(nextStack(arg0), new HashSet<OWLClassExpression>(Collections.singleton(arg0.getFiller())));
 	}
@@ -231,7 +221,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectHasSelf)
 	 */
-	@Override
 	public void visit(OWLObjectHasSelf arg0) {	
 		//Terminal:
 		unwind(activeStack, arg0);
@@ -240,7 +229,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLObjectOneOf)
 	 */
-	@Override
 	public void visit(OWLObjectOneOf arg0) {
 		// Terminal for each element of the power set:
 		Set<OWLIndividual> individuals = arg0.getIndividuals();
@@ -257,7 +245,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLDataSomeValuesFrom)
 	 */
-	@Override
 	public void visit(OWLDataSomeValuesFrom arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);
@@ -267,7 +254,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLDataAllValuesFrom)
 	 */
-	@Override
 	public void visit(OWLDataAllValuesFrom arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);
@@ -277,7 +263,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLDataHasValue)
 	 */
-	@Override
 	public void visit(OWLDataHasValue arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);
@@ -286,7 +271,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLDataMinCardinality)
 	 */
-	@Override
 	public void visit(OWLDataMinCardinality arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);	
@@ -295,7 +279,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLDataExactCardinality)
 	 */
-	@Override
 	public void visit(OWLDataExactCardinality arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);
@@ -304,7 +287,6 @@ public class TaxonomicDecompositionCollector implements OWLClassExpressionVisito
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLClassExpressionVisitor#visit(org.semanticweb.owlapi.model.OWLDataMaxCardinality)
 	 */
-	@Override
 	public void visit(OWLDataMaxCardinality arg0) {
 		//Terminal:
 		unwind(activeStack, arg0);

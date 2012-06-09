@@ -33,7 +33,6 @@ public abstract class AbstractNormalizerFactory implements NormalizerFactory {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.NormalizerFactory#normalize(org.semanticweb.owlapi.model.OWLOntology)
 	 */
-	@Override
 	public void normalize(OWLOntology ont) throws OWLOntologyCreationException {
 		getNormalizerForOntology(ont).normalize();
 	}
@@ -41,7 +40,6 @@ public abstract class AbstractNormalizerFactory implements NormalizerFactory {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.NormalizerFactory#normalize(org.semanticweb.owlapi.model.OWLOntology, java.util.Set)
 	 */
-	@Override
 	public void normalize(OWLOntology ont, Set<IRI> IRIs)
 			throws OWLOntologyCreationException {
 		getNormalizerForOntology(ont).normalize(IRIs);

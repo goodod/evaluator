@@ -76,7 +76,7 @@ public class SubsumptionMaterializationNormalizer extends AbstractNormalizer {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology, java.util.Set)
 	 */
-	@Override
+	
 	public synchronized void normalize(Set<IRI> IRIs)
 			throws OWLOntologyCreationException {
 		

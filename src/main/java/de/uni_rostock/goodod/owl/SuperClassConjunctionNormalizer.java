@@ -39,7 +39,6 @@ public class SuperClassConjunctionNormalizer extends AbstractNormalizer {
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(java.util.Set)
 	 */
-	@Override
 	public void normalize(Set<IRI> IRIs) throws OWLOntologyCreationException {
 		for (IRI i: IRIs)
 		{

@@ -9,6 +9,10 @@ Installation and Usage Instructions:
 * Install the HermiT reasoner into your maven repository using
     `mvn install:install-file -DgroupId=com.hermit-reasoner -DartifactId=HermiT
      -Dversion=1.3.5 -Dpackaging=jar -Dfile=HermiT.jar'
+* Install the OntoSim package (https://gforge.inria.fr/projects/ontosim/) 
+	into your maven repository using
+    `mvn install:install-file -DgroupId=org.inrialpes.exmo -DartifactId=OntoSim
+     -Dversion=2.2 -Dpackaging=jar -Dfile=ontosim.jar'
 * Run `mvn package' to build and package the evaluator. The corresponding .jar
   file ist placed in ./target/.
 * Set the GOODOD_REPO_ROOT environment variable (with `setenv'/`export' on *nix
