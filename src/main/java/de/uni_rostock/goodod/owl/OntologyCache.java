@@ -63,7 +63,7 @@ public class OntologyCache {
 		{
 			interimConfig = interimConfig.addIgnoredImport(theIRI);
 		}
-		interimConfig.setSilentMissingImportsHandling(true);
+		interimConfig = interimConfig.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 		config = interimConfig;
 		mappers = IRIMappers;
 		futures = new HashMap<URI,FutureTask<OWLOntology>>(24);

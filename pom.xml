@@ -30,8 +30,8 @@
   <dependencies>
   	<dependency>
   		<groupId>net.sourceforge.owlapi</groupId>
-  		<artifactId>owlapi-distribution</artifactId>
-  		<version>3.2.4</version>
+  		<artifactId>owlapi-apibinding</artifactId>
+  		<version>3.3</version>
   	</dependency>
   	<dependency>
   		<groupId>commons-configuration</groupId>
@@ -98,4 +98,11 @@
 
     </plugins>
   </build>
+  
+  <repositories>
+  <repository>
+  	<id>sonatype</id>
+  	<url>https://oss.sonatype.org/content/groups/public/</url>
+  </repository>
+  </repositories>
 </project>

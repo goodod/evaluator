@@ -54,7 +54,7 @@ public class BasicImportingNormalizerTestCase extends
 		OWLOntologyLoaderConfiguration loaderConf = new OWLOntologyLoaderConfiguration();
 		loaderConf = loaderConf.addIgnoredImport(biotopA);
 		loaderConf = loaderConf.addIgnoredImport(biotopB);
-		loaderConf = loaderConf.setSilentMissingImportsHandling(true);
+		loaderConf = loaderConf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 		
 		Map<IRI,IRI> importMap = new HashMap<IRI,IRI>();
 		importMap.put(biotopA, biotopCanonical);

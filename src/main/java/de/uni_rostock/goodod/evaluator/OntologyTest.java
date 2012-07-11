@@ -357,7 +357,7 @@ public class OntologyTest {
 	private Set<IRI>getIRIsToTest()
 	{
 		OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
-		config.setSilentMissingImportsHandling(true);
+		config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		FileDocumentSource rawSource = new FileDocumentSource(new File(rawOntology));
 		OWLOntology o = null;
@@ -408,6 +408,7 @@ public class OntologyTest {
 			&& ('l' == beginning[4])
 		   )
 		{
+			reader.close();
 			return true;
 		}
 		
@@ -419,9 +420,10 @@ public class OntologyTest {
 				&& ('l' == beginning[6])
 			   )
 			{
+				reader.close();
 				return true;
 			}
-		
+		reader.close();
 		return false;
 	}
 	
