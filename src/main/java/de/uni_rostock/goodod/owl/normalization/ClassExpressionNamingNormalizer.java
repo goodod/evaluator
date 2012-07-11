@@ -15,7 +15,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.normalization;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,6 +24,8 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.model.*;
+
+import de.uni_rostock.goodod.owl.ClassExpressionNameProvider;
 
 /**
  * Implements part of the normalization algorithm described in Vrandečić/Sure

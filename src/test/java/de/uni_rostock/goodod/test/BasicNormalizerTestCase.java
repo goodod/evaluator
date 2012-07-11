@@ -25,7 +25,7 @@ import org.semanticweb.owlapi.model.*;
 import org.junit.*;
 
 
-import de.uni_rostock.goodod.owl.BasicNormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.BasicNormalizerFactory;
 
 /**
  * @author Niels Grewe

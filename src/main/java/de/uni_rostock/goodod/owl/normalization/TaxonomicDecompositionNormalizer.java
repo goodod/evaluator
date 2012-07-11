@@ -15,13 +15,16 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.normalization;
 
 
 
 import java.util.Set;
 
-import de.uni_rostock.goodod.owl.ClassExpressionNamingNormalizer;
+import de.uni_rostock.goodod.owl.ClassExpressionNameProvider;
+import de.uni_rostock.goodod.owl.TaxonomicDecompositionCollector;
+import de.uni_rostock.goodod.owl.normalization.ClassExpressionNamingNormalizer;
+
 import org.semanticweb.owlapi.model.*;
 
 /**

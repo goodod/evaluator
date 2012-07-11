@@ -47,6 +47,17 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
 import de.uni_rostock.goodod.owl.*;
+import de.uni_rostock.goodod.owl.comparison.CSCComparator;
+import de.uni_rostock.goodod.owl.comparison.Comparator;
+import de.uni_rostock.goodod.owl.comparison.FMeasureComparisonResult;
+import de.uni_rostock.goodod.owl.comparison.SCComparator;
+import de.uni_rostock.goodod.owl.normalization.BasicImportingNormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.ClassExpressionNamingNormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.NormalizerChainFactory;
+import de.uni_rostock.goodod.owl.normalization.NormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.SubsumptionMaterializationNormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.SuperClassConjunctionNormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.TaxonomicDecompositionNormalizerFactory;
 import de.uni_rostock.goodod.tools.Configuration;
 
 /**

@@ -15,7 +15,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.comparison;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -23,6 +23,10 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.semanticweb.owlapi.model.*;
+
+import de.uni_rostock.goodod.owl.OntologyPair;
+import de.uni_rostock.goodod.owl.SubClassCollector;
+import de.uni_rostock.goodod.owl.SuperClassCollector;
 
 /**
  * Comparator for ontology pairs using semantic cotopy (cf. Dellschaft/Staab

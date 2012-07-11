@@ -28,7 +28,7 @@ import org.junit.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
-import de.uni_rostock.goodod.owl.BasicImportingNormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.BasicImportingNormalizerFactory;
 
 /**
  * @author Niels Grewe

@@ -21,7 +21,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.*;
-import de.uni_rostock.goodod.owl.ClassExpressionNamingNormalizerFactory;
+
+import de.uni_rostock.goodod.owl.normalization.ClassExpressionNamingNormalizerFactory;
 
 import org.semanticweb.owlapi.model.*;
 /**

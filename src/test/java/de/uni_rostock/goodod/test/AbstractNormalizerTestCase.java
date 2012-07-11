@@ -20,7 +20,7 @@ package de.uni_rostock.goodod.test;
 import org.junit.*;
 import org.semanticweb.owlapi.model.*;
 
-import de.uni_rostock.goodod.owl.NormalizerFactory;
+import de.uni_rostock.goodod.owl.normalization.NormalizerFactory;
 
 /**
  * @author Niels Grewe

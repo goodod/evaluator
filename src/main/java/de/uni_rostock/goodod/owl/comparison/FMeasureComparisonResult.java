@@ -15,9 +15,11 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.comparison;
 
 import java.util.concurrent.ExecutionException;
+
+import de.uni_rostock.goodod.owl.OntologyPair;
 
 /**
  * @author Niels Grewe <niels.grewe@uni-rostock.de>

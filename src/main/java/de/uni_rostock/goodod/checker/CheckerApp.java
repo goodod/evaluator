@@ -27,8 +27,8 @@ import java.util.Set;
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
 
-import de.uni_rostock.goodod.owl.BasicImportingNormalizerFactory;
 import de.uni_rostock.goodod.owl.SubClassCollector;
+import de.uni_rostock.goodod.owl.normalization.BasicImportingNormalizerFactory;
 import de.uni_rostock.goodod.tools.Configuration;
 
 import org.semanticweb.HermiT.Reasoner;

@@ -15,7 +15,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.normalization;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import org.semanticweb.owlapi.model.*;
+
+import de.uni_rostock.goodod.owl.ExpressionTransform;
 
 
 /**
@@ -45,7 +47,7 @@ public class BasicNormalizer extends AbstractNormalizer implements OWLAxiomVisit
 	}
 
 	/**
-	 * @see de.uni_rostock.goodod.owl.Normalizer#setImportMappings(java.util.Map)
+	 * @see de.uni_rostock.goodod.owl.normalization.Normalizer#setImportMappings(java.util.Map)
 	 */
 	public void setImportMappings(Map<IRI, IRI> oldToNewIRIMap) {
 		IRIMap = oldToNewIRIMap;
@@ -55,7 +57,7 @@ public class BasicNormalizer extends AbstractNormalizer implements OWLAxiomVisit
 	/**
 	 * Performs default normalization by replacing imports.
 	 * 
-	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology)
+	 * @see de.uni_rostock.goodod.owl.normalization.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology)
 	 */
 	public void normalize() throws OWLOntologyCreationException {
 		/*
@@ -98,7 +100,7 @@ public class BasicNormalizer extends AbstractNormalizer implements OWLAxiomVisit
 	 * Since the basic normalizer does only perform import replacement, this
 	 * method just calls the standard normalization method.
 	 * 
-	 * @see de.uni_rostock.goodod.owl.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology,
+	 * @see de.uni_rostock.goodod.owl.normalization.Normalizer#normalize(org.semanticweb.owlapi.model.OWLOntology,
 	 *      java.util.Set)
 	 */
 	public void normalize(Set<IRI> IRIs) throws OWLOntologyCreationException  {

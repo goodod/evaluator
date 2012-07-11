@@ -16,13 +16,15 @@
 
  */
 
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.comparison;
 
 import java.util.concurrent.ExecutionException;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+
+import de.uni_rostock.goodod.owl.OntologyPair;
 
 
 public abstract class ComparisonResult

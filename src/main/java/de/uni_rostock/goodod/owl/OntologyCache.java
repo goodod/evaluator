@@ -23,6 +23,8 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
+import de.uni_rostock.goodod.owl.normalization.NormalizerFactory;
+
 
 import java.io.File;
 import java.net.URI;

@@ -16,7 +16,7 @@
 
  */
 
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.normalization;
 
 import java.util.*;
 import org.semanticweb.owlapi.model.*;

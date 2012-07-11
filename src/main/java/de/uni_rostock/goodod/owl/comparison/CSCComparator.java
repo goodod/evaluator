@@ -15,12 +15,14 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.comparison;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.*;
+
+import de.uni_rostock.goodod.owl.OntologyPair;
 
 /**
  * Comparator that implements the common semantic cotopy algorithm from

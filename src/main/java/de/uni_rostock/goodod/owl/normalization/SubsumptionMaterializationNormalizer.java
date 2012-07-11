@@ -15,7 +15,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
  */
-package de.uni_rostock.goodod.owl;
+package de.uni_rostock.goodod.owl.normalization;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +32,9 @@ import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.HermiT.Configuration.ExistentialStrategyType;
 import org.semanticweb.HermiT.Configuration.TableauMonitorType;
 import org.semanticweb.HermiT.Reasoner;
+
+import de.uni_rostock.goodod.owl.SubClassCollector;
+import de.uni_rostock.goodod.owl.SuperClassCollector;
 
 
 /**
