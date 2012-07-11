@@ -54,6 +54,11 @@
 		<artifactId>OntoSim</artifactId>
 		<version>2.2</version>
 	</dependency>
+	<dependency>
+		<groupId>org.inrialpes.exmo</groupId>
+		<artifactId>OntoWrap</artifactId>
+		<version>4.3</version>
+	</dependency>
   </dependencies>
   <url>http://www.iph.uni-rostock.de/DFG-Projekt-GoodOD.772.0.html</url>
 
