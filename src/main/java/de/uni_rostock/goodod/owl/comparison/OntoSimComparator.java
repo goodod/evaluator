@@ -19,6 +19,14 @@
  */
 package de.uni_rostock.goodod.owl.comparison;
 
+
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.semanticweb.owlapi.model.IRI;
+
 import de.uni_rostock.goodod.owl.*;
 
 
@@ -35,7 +43,8 @@ import fr.inrialpes.exmo.ontowrap.owlapi30.OWLAPI3OntologyFactory;
 public abstract class OntoSimComparator implements Comparator {
 
 	static private OWLAPI3OntologyFactory ontoWrapFactory = new OWLAPI3OntologyFactory();
-	private OntologyPair pair;
+	private static Log logger = LogFactory.getLog(OntoSimComparator.class);
+	protected OntologyPair pair;
 	protected HeavyLoadedOntology<?> ontologyA;
 	protected HeavyLoadedOntology<?> ontologyB;
 	boolean includeImports;
@@ -52,16 +61,15 @@ public abstract class OntoSimComparator implements Comparator {
 		super();
 		pair = thePair;
 		includeImports = doIncludeImports;
-		try {
-			ontologyA = ontoWrapFactory.newOntology(pair.getOntologyA());
-			ontologyB = ontoWrapFactory.newOntology(pair.getOntologyB());
-			
-		} 
-		catch (Throwable e)
-    	{
-    		System.out.println("COMPARE ERROR: " +  e.toString());
-    	    throw e;
-    	}
+		ontologyA = ontoWrapFactory.newOntology(pair.getOntologyA());
+		ontologyB = ontoWrapFactory.newOntology(pair.getOntologyB());
+	}
+	
+	public ComparisonResult compare(Set<IRI>iriSet) throws ExecutionException, InterruptedException
+	{
+		// Unfortunately, 
+		logger.warn("Partial comparison unsupported by OntoSim.");
+		return compare();
 	}
 	
 	/* (non-Javadoc)
@@ -129,25 +137,6 @@ public abstract class OntoSimComparator implements Comparator {
 			//dies = m2.getMeasureValue(o1, o2);
 		} catch (Throwable e) {System.out.println("COMPARE ERROR 2: " +  e.toString());}
 		/////// END TripleBasedEntitySim block ///////////////// 
-		
-		/*////////////////////////////////////////////////////////
-		// following block CosineVM 
-		// tested with JENA - w/wo imports, w/wo normalization
-		////////////////////////////////////////////////////////
-		/*Vector<LoadedOntology<?>> ontos = new Vector<LoadedOntology<?>>();
-		ontos.add(o1);
-		ontos.add(o2);
-		VectorSpaceMeasure m;
-		try {
-			m = new VectorSpaceMeasure(ontos,new CosineVM(), DocumentCollection.WEIGHT.TF);
-			newPrec = m.getSim(o1, o2);
-			newRec = m.getDissim(o1, o2);
-		} catch (Throwable e) {System.out.println("COMPARE CosineVM ERROR 2: " +  e.toString());}
-		//////// END CosineVM block ///////////////// 
-		*/		
-		/*
-		System.out.println(newPrec);
-		return new FMeasureComparisonResult(getComparisonMethod(), pair, newPrec, newRec);
 	}*/
 
 }
