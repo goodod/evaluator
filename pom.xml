@@ -59,6 +59,11 @@
 		<artifactId>OntoWrap</artifactId>
 		<version>4.3</version>
 	</dependency>
+	<dependency>
+		<groupId>org.apache.jena</groupId>
+		<artifactId>jena-arq</artifactId>
+		<version>2.9.0-incubating</version>
+	</dependency>
   </dependencies>
   <url>http://www.iph.uni-rostock.de/DFG-Projekt-GoodOD.772.0.html</url>
 
