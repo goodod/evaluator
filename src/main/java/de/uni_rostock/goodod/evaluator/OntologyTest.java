@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.FileReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,10 +31,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.apache.commons.configuration.plist.*;
-import org.apache.commons.configuration.AbstractHierarchicalFileConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
 
@@ -49,6 +46,7 @@ import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import de.uni_rostock.goodod.owl.*;
 import de.uni_rostock.goodod.owl.comparison.CSCComparator;
 import de.uni_rostock.goodod.owl.comparison.Comparator;
+import de.uni_rostock.goodod.owl.comparison.ComparisonResult;
 import de.uni_rostock.goodod.owl.comparison.FMeasureComparisonResult;
 import de.uni_rostock.goodod.owl.comparison.SCComparator;
 import de.uni_rostock.goodod.owl.normalization.BasicImportingNormalizerFactory;
@@ -71,7 +69,7 @@ public class OntologyTest {
 	private final int threadCount;
 	private final String similarity;
 	private Configuration globalConfig;
-	private AbstractHierarchicalFileConfiguration testConfig;
+	private HierarchicalConfiguration testConfig;
 	private URI rawOntology;
 	private URI modelOntology;
 	private Set<URI> groupAOntologies;
@@ -80,53 +78,62 @@ public class OntologyTest {
 	private URI bioTopLiteURI;
 	private Map<IRI,IRI>importMap;
 	private Set<IRI>testIRIs;
-	private Map<URI,Map<URI,FMeasureComparisonResult>> resultMap;
+	private Map<URI,Map<URI,ComparisonResult>> resultMap;
 	private boolean considerImports;
 	private static Log logger = LogFactory.getLog(OntologyTest.class);
 	private int inProgressCount;
-	public OntologyTest(File testDescription) throws FileNotFoundException, IOException, OWLOntologyCreationException, ConfigurationException
+	public OntologyTest(HierarchicalConfiguration testDescription) throws FileNotFoundException, IOException, OWLOntologyCreationException, ConfigurationException
 	{
 		
 		// Get a reference to the global configuration:
 		globalConfig = Configuration.getConfiguration();
 		threadCount = globalConfig.getInt("threadCount");
 		similarity = globalConfig.getString("similarity");
-		// Check whether we are loading an XML property list or a plain on for the test.
-		if (isXMLConfig(testDescription))
-		{
-			testConfig = new XMLPropertyListConfiguration(testDescription);
-		}
-		else
-		{
-			testConfig = new PropertyListConfiguration(testDescription);;
-		}
+		testConfig = testDescription;
 		
 		// Gather URIs for the raw, model and student ontologies.
 		String repoRoot = globalConfig.getString("repositoryRoot");
+		if (null == repoRoot)
+		{
+			repoRoot = "";
+		}
 		String testDir = repoRoot + File.separator + globalConfig.getString("testDir");
-		String groupADir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupA");
-		String groupBDir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupB");
-		File rawFile = new File(testDir + File.separator + testConfig.getString("rawOntology"));
-		rawOntology = rawFile.toURI();
-		File modelFile = new File(testDir + File.separator + testConfig.getString("modelOntology"));
-		modelOntology = modelFile.toURI();
+		String groupADir = "";
+		String groupBDir = "";
+		if (false == testConfig.getBoolean("notInRepository", false))
+		{
+			groupADir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupA") + File.separator;
+			groupBDir = repoRoot + File.separator + globalConfig.configurationAt("groupDirs").getString("groupB") + File.separator;
+		}
+		File rawFile = null;
+		if (testConfig.containsKey("rawOntology"))
+		{
+			rawFile = new File(testDir + File.separator + testConfig.getString("rawOntology"));
+			rawOntology = rawFile.toURI();
+		}
+		File modelFile = null;
+		if (testConfig.containsKey("modelOntology"))
+		{
+			modelFile = new File(testDir + File.separator + testConfig.getString("modelOntology"));
+			modelOntology = modelFile.toURI();
+		}
 		groupAOntologies = new HashSet<URI>(12);
 		groupBOntologies = new HashSet<URI>(12);
 		failedComparisons = new HashMap<URI,Set<URI>>();
 		SubnodeConfiguration studentOntConf = testConfig.configurationAt("studentOntologies");
 		for (String fileName : studentOntConf.getStringArray("groupA"))
 		{
-			File studFile = new File(groupADir + File.separator + fileName);
+			File studFile = new File(groupADir + fileName);
 			groupAOntologies.add(studFile.toURI());
 		}
 		for (String fileName : studentOntConf.getStringArray("groupB"))
 		{
-			File studFile = new File(groupBDir + File.separator + fileName);
+			File studFile = new File(groupBDir  + fileName);
 			groupBOntologies.add(studFile.toURI());
 		}
 		
 		// create the result map:
-		resultMap = new HashMap<URI,Map<URI,FMeasureComparisonResult>>(25);
+		resultMap = new HashMap<URI,Map<URI,ComparisonResult>>(25);
 	
 		// Get URIs for BioTopLite and the ignored imports.
 		File biotopF = new File(globalConfig.getString("repositoryRoot") + File.separator + globalConfig.getString("bioTopLiteSource"));
@@ -190,7 +197,10 @@ public class OntologyTest {
 		}
     	allOntologies.addAll(groupAOntologies);
     	allOntologies.addAll(groupBOntologies);
-    	allOntologies.add(modelOntology);
+    	if (null != modelOntology)
+    	{
+    		allOntologies.add(modelOntology);
+    	}
     	logger.info("Running comparisons for test '" + getTestName() +"'.");
     	
     	for (URI u1 : allOntologies)
@@ -311,16 +321,16 @@ public class OntologyTest {
 				logger.warn("Invalid similarity computation method '" + similarity + "'. Defaulting to csc. Please specify either sc or csc");
 			}
 		}	
-    		FMeasureComparisonResult res = null;
+    		ComparisonResult res = null;
     		try
     		{
     			if (null == testIRIs)
     			{
-    				res = (FMeasureComparisonResult)comp.compare();
+    				res = comp.compare();
     			}
     			else
     			{
-    				res = (FMeasureComparisonResult)comp.compare(testIRIs);
+    				res = comp.compare(testIRIs);
     			}
     		}
     		catch (Throwable e)
@@ -348,12 +358,12 @@ public class OntologyTest {
 		inProgressCount--;
 	}
 	
-	private synchronized void pushResult(URI o1, URI o2, FMeasureComparisonResult res)
+	private synchronized void pushResult(URI o1, URI o2, ComparisonResult res)
 	{
-    	Map<URI,FMeasureComparisonResult> innerMap = resultMap.get(o1);
+    	Map<URI,ComparisonResult> innerMap = resultMap.get(o1);
     	if (null == innerMap)
     	{
-    		innerMap = new HashMap<URI,FMeasureComparisonResult>(25);
+    		innerMap = new HashMap<URI,ComparisonResult>(25);
     		resultMap.put(o1, innerMap);
     	}
     	innerMap.put(o2, res);
@@ -367,6 +377,11 @@ public class OntologyTest {
 	
 	private Set<IRI>getIRIsToTest()
 	{
+		if (rawOntology == null)
+		{
+			//TODO: Load from test configuration
+			return null;
+		}
 		OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
 		config = config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
@@ -406,89 +421,101 @@ public class OntologyTest {
 		return null;
 	}
 	
-	private boolean isXMLConfig(File confFile) throws FileNotFoundException, IOException
-	{
-		FileReader reader = new FileReader(confFile);
-		char beginning [] = new char [7];
-		// we search for "<?xml" but need two additional characters to accommodate a potential BOM
-		reader.read(beginning, 0, 7);
-		if (   ('<' == beginning[0])
-			&& ('?' == beginning[1])
-			&& ('x' == beginning[2])
-			&& ('m' == beginning[3])
-			&& ('l' == beginning[4])
-		   )
-		{
-			reader.close();
-			return true;
-		}
-		
-		// Case with byte order mark:
-		if (   ('<' == beginning[2])
-				&& ('?' == beginning[3])
-				&& ('x' == beginning[4])
-				&& ('m' == beginning[5])
-				&& ('l' == beginning[6])
-			   )
-			{
-				reader.close();
-				return true;
-			}
-		reader.close();
-		return false;
-	}
-	
 	public TestResult getTestResultBetween(Set<URI> computed, Set<URI> reference)
 	{
+		if (computed.isEmpty() || reference.isEmpty())
+		{
+			return null;
+		}
 		//FIXME: Ignore failed comparisons
 		int iPre = 0;
 		int iRec = 0;
 		double pre = 0;
 		double rec = 0;
-		for (Map.Entry<URI,Map<URI,FMeasureComparisonResult>> e1 : resultMap.entrySet())
+		boolean isPrecisionRecall = resultMap.values().iterator().next().values().iterator().next() instanceof FMeasureComparisonResult;
+		for (Map.Entry<URI,Map<URI,ComparisonResult>> e1 : resultMap.entrySet())
 		{
 			if (computed.contains(e1.getKey()))
 			{
-				for (Map.Entry<URI, FMeasureComparisonResult> e2 : e1.getValue().entrySet())
+				for (Map.Entry<URI, ComparisonResult> e2 : e1.getValue().entrySet())
 				{
 					if (reference.contains(e2.getKey()) &&
 						(false == e1.getKey().equals(e2.getKey())))
 					{
-						double thisPre = e2.getValue().getPrecision();
-						if (false == Double.isNaN(thisPre))
+						if (isPrecisionRecall)
 						{
-							pre = pre + thisPre;
-							iPre++;
+							double thisPre = ((FMeasureComparisonResult)e2.getValue()).getPrecision();
+							if (false == Double.isNaN(thisPre))
+							{
+								pre = pre + thisPre;
+								iPre++;
+							}
+							double thisRec = ((FMeasureComparisonResult)e2.getValue()).getRecall();
+							if (false == Double.isNaN(thisRec))
+							{
+								rec = rec + thisRec;
+								iRec++;
+							}
 						}
-						double thisRec = e2.getValue().getRecall();
-						if (false == Double.isNaN(thisRec))
+						else
 						{
-							rec = rec + thisRec;
-							iRec++;
+							double thisSim = e2.getValue().getSimilarity();
+							if (false == Double.isNaN(thisSim))
+							{
+								pre = pre + thisSim;
+								iPre++;
+							}
 						}
 					}
 				}
 			}
 		}
-		// FIXME: Precision/Recall for group internal is not quite right sometimes
-		return new TestResult(iPre, pre, iRec, rec, reference, computed);
+		if (isPrecisionRecall)
+		{
+			return new PrecisionRecallTestResult(iPre, pre, iRec, rec, reference, computed);
+		}
+		return new TestResult(iPre, pre, reference, computed);
 	}
 	
 	public TestResult getTestResultGroupAAgainstReference()
 	{
-		Set<URI> ref = Collections.singleton(modelOntology);
+		Set<URI> ref;
+		if (null != modelOntology)
+		{
+			ref = Collections.singleton(modelOntology);
+		}
+		else
+		{
+			ref = Collections.emptySet();
+		}
 		return getTestResultBetween(groupAOntologies, ref);
 	}
 	
 	public TestResult getTestResultGroupBAgainstReference()
 	{
-		Set<URI> ref = Collections.singleton(modelOntology);
+		Set<URI> ref;
+		if (null != modelOntology)
+		{
+			ref = Collections.singleton(modelOntology);
+		}
+		else
+		{
+			ref = Collections.emptySet();
+		}
 		return getTestResultBetween(groupBOntologies, ref);
 	}
 	
 	public TestResult getTestResultAllAgainstReference()
 	{
-		Set<URI> ref = Collections.singleton(modelOntology);
+		Set<URI> ref;
+		if (null != modelOntology)
+		{
+			ref = Collections.singleton(modelOntology);
+		}
+		else
+		{
+			ref = Collections.emptySet();
+		}
 		Set<URI> studentOnt = new HashSet<URI>(24);
 		studentOnt.addAll(groupAOntologies);
 		studentOnt.addAll(groupBOntologies);
@@ -505,11 +532,20 @@ public class OntologyTest {
 	
 	public TestResult getTestResultGroupAInternal()
 	{
+		// It doesn't make sense to return a result for single ontologies.
+		if (groupAOntologies.size() == 1)
+		{
+			return null;
+		}
 		return getTestResultBetween(groupAOntologies,groupAOntologies);
 	}
 	
 	public TestResult getTestResultGroupBInternal()
 	{
+		if (groupBOntologies.size() == 1)
+		{
+			return null;
+		}
 		return getTestResultBetween(groupBOntologies,groupBOntologies);
 	}
 	
@@ -527,6 +563,7 @@ public class OntologyTest {
 	@Override
 	public String toString()
 	{
+		//Horrible spaghetti code stuff here, sorry.
 		TestResult internalA = getTestResultGroupAInternal();
 		TestResult internalB = getTestResultGroupBInternal();
 		TestResult AvsB = getTestResultGroupAAgainstGroupB();
@@ -535,16 +572,52 @@ public class OntologyTest {
 		TestResult BvsRef = getTestResultGroupBAgainstReference();
 		TestResult AllvsRef = getTestResultAllAgainstReference();
 		TestResult AllvsAll = getTestResultAllAgainstAll();
-		return "Test result report for '" + getTestName() + "' (mean values)" + '\n' +
-				'\t' + '\t' + "Precision" + '\t' + '\t' + "Recall" + '\t'+ '\t' + '\t' + "F-Measure" + '\n' +
-				"all vs. model" + '\t' + AllvsRef.toString() + '\n' +
-				"A vs. model" + '\t' + AvsRef.toString() + '\n' +
-				"B vs. model" + '\t' + BvsRef.toString() + '\n' +
-				"all vs. all" + '\t' + AllvsAll.toString() + '\n' +
-				"A vs. B" + '\t' + '\t' + AvsB.toString() + '\n' +
-				"B vs. A" + '\t' + '\t' + BvsA.toString() + '\n' +
-				"A internal" + '\t' + internalA.toString() + '\n' +
-				"B internal" + '\t' + internalB.toString();
+		StringBuilder result = new StringBuilder("Test result report for '" + getTestName() + "' (mean values)" + '\n');
+		// We are making guarantees that AllvsAll is available
+		boolean isPrecRecall = (AllvsAll instanceof PrecisionRecallTestResult);
+		if (isPrecRecall)
+		{
+			result.append('\t' + '\t' + "Precision" + '\t' + '\t' + "Recall" + '\t'+ '\t' + '\t' + "F-Measure" + '\n');
+		}
+		else
+		{
+			result.append('\t' + "Similarity" + '\n');
+		}
+		
+		if (null != AllvsRef)
+		{
+			result.append("all vs. model" + '\t' + AllvsRef.toString() + '\n');
+		}
+		if (null != AvsRef)
+		{
+			result.append("A vs. model" + '\t' + AvsRef.toString() + '\n');
+		}
+		if (null != BvsRef)
+		{
+			result.append("B vs. model" + '\t' + BvsRef.toString() + '\n');
+		}
+		if (null != AllvsAll)
+		{
+			result.append("All vs. all" + '\t' + AllvsAll.toString() + '\n');
+		}
+
+		if (null != AvsB)
+		{
+			result.append("A vs. B" + '\t' + AvsB.toString() + '\n');
+		}	
+		if (null != BvsA)
+		{
+			result.append("B vs. A" + '\t' + BvsA.toString() + '\n');
+		}
+		if (null != internalA)
+		{
+			result.append("A internal" + '\t' + internalA.toString() + '\n');
+		}
+		if (null != internalB)
+		{
+			result.append("B internal" + '\t' + internalB.toString() + '\n');
+		}
+		return result.toString();
 	
 	}
 	
@@ -581,27 +654,30 @@ public class OntologyTest {
 		
 	}
 
-	private enum StatType { PRECISION, RECALL, FMEASURE };
+	private enum StatType { SIMILARITY, PRECISION, RECALL, FMEASURE };
 	
-	private String tableLine(URI u, List<URI>ontologies, StatType type)
+	private String writeTableLine(URI u, List<URI>ontologies, StatType type)
 	{
 		String line = '"' + shortNameForURI(u) + '"' + ",";
 		for (URI u2 : ontologies)
 		{
-			FMeasureComparisonResult res = resultMap.get(u).get(u2);
+			ComparisonResult res = resultMap.get(u).get(u2);
 			double value = 0;
 			if (null != res)
 			{
 				switch (type)
 				{
+				case SIMILARITY:
+					value = res.getSimilarity();
+					break;
 				case PRECISION:
-					value = res.getPrecision();
+					value = ((FMeasureComparisonResult)res).getPrecision();
 					break;
 				case RECALL:
-					value = res.getRecall();
+					value = ((FMeasureComparisonResult)res).getRecall();
 					break;
 				case FMEASURE:
-					value = res.getFMeasure();
+					value = ((FMeasureComparisonResult)res).getFMeasure();
 					break;
 				}
 				line = line + '"' + value + '"' + ",";
@@ -621,16 +697,19 @@ public class OntologyTest {
 		Set<URI> allOntologies = new HashSet<URI>(25);
     	allOntologies.addAll(groupAOntologies);
     	allOntologies.addAll(groupBOntologies);
-    	allOntologies.add(modelOntology);
+    	if (null != modelOntology)
+    	{
+    		allOntologies.add(modelOntology);
+    	}
     	List<URI> ontologyList = new ArrayList<URI>(allOntologies);
     	theTable = tableHeader(ontologyList) + '\n';
     	for (URI u : ontologyList)
     	{
-    		if (u.equals(modelOntology))
+    		if ((null != modelOntology) && u.equals(modelOntology))
     		{
     			continue;
     		}
-    		theTable = theTable + tableLine(u, ontologyList, type) + '\n';
+    		theTable = theTable + writeTableLine(u, ontologyList, type) + '\n';
     	}
     	writer.write(theTable);
     	writer.flush();
@@ -649,6 +728,12 @@ public class OntologyTest {
 	public void writeFMeasureTable(FileWriter w) throws IOException
 	{
 		writeTable(w, StatType.FMEASURE);
+	}
+	
+	
+	public void writeSimilarityTable(FileWriter w) throws IOException
+	{
+		writeTable(w, StatType.SIMILARITY);
 	}
 	
 

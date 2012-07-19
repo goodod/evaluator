@@ -55,7 +55,7 @@ public class TripleBasedEntitySimComparator extends OntoSimComparator {
 	{
 		super(p, includeImports);
 		
-// Get a serialization of the OWLAPI representation:
+		// Get a serialization of the OWLAPI representation:
 		ByteArrayOutputStream sourceA = outputStreamForOntology(pair.getOntologyA());
 		ByteArrayOutputStream sourceB = outputStreamForOntology(pair.getOntologyB());
 		
@@ -79,7 +79,11 @@ public class TripleBasedEntitySimComparator extends OntoSimComparator {
 		jenaA.read(destinationA, uriA);
 		jenaB.read(destinationB, uriB);
 		
-		// place them in our ivars. (Note: They're HeavyLoadedOntology<OntModel> now)
+		// Throw away the input streams:
+		destinationA = null;
+		destinationB = null;
+		
+		// place the new models in our ivars. (Note: They're HeavyLoadedOntology<OntModel> now)
 		ontologyA = jenaOntoWrapFactory.newOntology(jenaA);
 		ontologyB = jenaOntoWrapFactory.newOntology(jenaB);
 	}

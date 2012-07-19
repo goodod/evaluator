@@ -10,5 +10,4 @@
   testDir = "docs/Testaufgaben";
   threadCount = 4;
   similarity = "csc";
-
 }

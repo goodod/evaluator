@@ -24,6 +24,10 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import de.uni_rostock.goodod.tools.Configuration;
 
@@ -40,13 +44,26 @@ public class EvaluatorApp
     
 	public static void main( String[] args )
     {
+		Logger root = Logger.getRootLogger();
+		if (false == root.getAllAppenders().hasMoreElements())
+		{
+			root.addAppender(new ConsoleAppender(
+					new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+			root.setLevel(Level.INFO);
+		}
 		config = Configuration.getConfiguration(args);
     
-    	String testFile = config.getString("testDescription");
+	
+		if (config.getBoolean("debug", false))
+		{
+			root.setLevel(Level.DEBUG);
+		}
+		
     	OntologyTest theTest = null;
+    	String testFile = config.getString("testFile");
     	try
     	{
-    		theTest = new OntologyTest(new File(testFile));
+    		theTest = new OntologyTest(config.configurationAt("testDescription"));
     		theTest.executeTest();
     	}
     	catch (Throwable e)
@@ -62,9 +79,15 @@ public class EvaluatorApp
 		similarityType = "csc";
 	}
     	String baseName = similarityType + "-" + testFile.substring(0, (testFile.length() - 6));
-    	File precisionFile =  new File(baseName + ".precision.csv");
-    	File recallFile = new File(baseName + ".recall.csv");
-    	File fmeasureFile = new File(baseName + ".fmeasure.csv");
+    	
+    	File precisionFile =  null; 
+    	File recallFile = null;
+    	File fmeasureFile = null;
+    	
+    	
+    	precisionFile = new File(baseName + ".precision.csv");
+    	recallFile = new File(baseName + ".recall.csv");
+    	fmeasureFile = new File(baseName + ".fmeasure.csv");
     	try
     	{
     		theTest.writePrecisionTable(new FileWriter(precisionFile));

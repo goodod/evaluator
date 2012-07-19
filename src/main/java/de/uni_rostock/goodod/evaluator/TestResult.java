@@ -1,8 +1,8 @@
 /**
-  Copyright (C) 2011 The University of Rostock.
+  Copyright (C) 2012 The University of Rostock.
  
-  Written by:  Niels Grewe <niels.grewe@uni-rostock.de>
-  Created: 18.12.2011
+  Written by:  thebeing
+  Created: 18.07.2012
   
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
@@ -21,56 +21,42 @@ import java.net.URI;
 import java.util.Set;
 
 /**
- * @author Niels Grewe <niels.grewe@uni-rostock.de>
+ * @author Niels Grewe
  *
+ * Generic class for recording similarity test results over groups of ontologies.
  */
 public class TestResult {
 
-	private int precisionCount;
-	private int recallCount;
-	private double accumulatedPrecision;
-	private double accumulatedRecall;
-	private Set<URI>computed;
-	private Set<URI>reference;
+	protected Set<URI> computed;
+	protected Set<URI> reference;
+	protected double meanSimilarity;
 
-	public TestResult(int preCount, double p, int recCount, double r, Set<URI>comp, Set<URI> ref)
-	{
-		precisionCount = preCount;
-		accumulatedPrecision = p;
-		recallCount = recCount;
-		accumulatedRecall = r;
+	/**
+	 * 
+	 */
+	public TestResult(int simCount, double accSim, Set<URI>comp, Set<URI> ref) {
+		super();
 		computed = comp;
 		reference = ref;
+		meanSimilarity = accSim/(double)simCount;
 	}
-	
-	public double getMeanPrecision()
-	{
-		return accumulatedPrecision/precisionCount;
-	}
-	
-	public double getMeanRecall()
-	{
-		return accumulatedRecall/recallCount;
-	}
-	
-	public double getMeanFMeasure()
-	{
-		return (2 * getMeanRecall() * getMeanPrecision())/ (getMeanRecall() + getMeanPrecision());
-	}
-	
-	public Set<URI> getReferenceSet()
-	{
+
+	public Set<URI> getReferenceSet() {
 		return reference;
 	}
-	
-	public Set<URI> getComputedSet()
-	{
+
+	public Set<URI> getComputedSet() {
 		return computed;
+	}
+
+	public double getMeanSimilarity()
+	{
+		return meanSimilarity;
 	}
 	
 	@Override
 	public String toString()
 	{
-		return "" + getMeanPrecision() + '\t' + getMeanRecall() + '\t' + getMeanFMeasure();
+		return "" + getMeanSimilarity();
 	}
 }
