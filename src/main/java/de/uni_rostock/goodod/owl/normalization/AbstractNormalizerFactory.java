@@ -19,9 +19,12 @@ package de.uni_rostock.goodod.owl.normalization;
 
 import java.util.Set;
 
+import org.apache.commons.configuration.SubnodeConfiguration;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+
+import de.uni_rostock.goodod.tools.Configuration;
 
 /**
  * @author Niels Grewe
@@ -29,12 +32,25 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
  */
 public abstract class AbstractNormalizerFactory implements NormalizerFactory {
 
+	protected SubnodeConfiguration config;
 
+	public AbstractNormalizerFactory()
+	{
+		// Just set the configuration if it's available.
+		config = Configuration.getConfiguration().configurationFromDomainForClassWithShorthandSuffix("normalizers",
+		  this.getClass(),
+		  "NormalizerFactory");
+		
+	}
 	/* (non-Javadoc)
 	 * @see de.uni_rostock.goodod.owl.NormalizerFactory#normalize(org.semanticweb.owlapi.model.OWLOntology)
 	 */
 	public void normalize(OWLOntology ont) throws OWLOntologyCreationException {
-		getNormalizerForOntology(ont).normalize();
+		Normalizer n = getNormalizerForOntology(ont);
+		if (null != n)
+		{
+			n.normalize();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -42,7 +58,12 @@ public abstract class AbstractNormalizerFactory implements NormalizerFactory {
 	 */
 	public void normalize(OWLOntology ont, Set<IRI> IRIs)
 			throws OWLOntologyCreationException {
-		getNormalizerForOntology(ont).normalize(IRIs);
+		Normalizer n = getNormalizerForOntology(ont);
+		if (null != n)
+		{
+			n.normalize(IRIs);
+		
+		}
 	}
-
+	
 }

@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.*;
 
@@ -32,10 +35,13 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 
 import de.uni_rostock.goodod.owl.OntologyPair;
+import de.uni_rostock.goodod.tools.Configuration;
 import fr.inrialpes.exmo.ontowrap.jena25.JENAOntologyFactory;
 import fr.inrialpes.exmo.ontosim.*;
 import fr.inrialpes.exmo.ontosim.entity.TripleBasedEntitySim;
 import fr.inrialpes.exmo.ontosim.entity.model.Entity;
+import fr.inrialpes.exmo.ontosim.set.AverageLinkage;
+import fr.inrialpes.exmo.ontosim.set.Hausdorff;
 import fr.inrialpes.exmo.ontosim.set.MaxCoupling;
 import fr.inrialpes.exmo.ontosim.set.SetMeasure;
 
@@ -44,17 +50,44 @@ import fr.inrialpes.exmo.ontosim.set.SetMeasure;
  * This class implements comparisons using triple based entity similarity.
  * It requires ontologies to be converted to the JENA API.
  */
+
+
 public class TripleBasedEntitySimComparator extends OntoSimComparator {
 
+	enum AggregationScheme { MAX_COUPLING, AVERAGE_LINKAGE, HAUSDORFF };
 	/**
 	 * This needs a special factory to generate JENA OntModels
 	 */
 	static private JENAOntologyFactory jenaOntoWrapFactory = new JENAOntologyFactory();
-	
+	static private Log logger = LogFactory.getLog(TripleBasedEntitySimComparator.class);
+	private AggregationScheme aggregation;
 	public TripleBasedEntitySimComparator(OntologyPair p, boolean includeImports) throws Throwable
 	{
 		super(p, includeImports);
+		SubnodeConfiguration conf = Configuration.getConfiguration().configurationFromDomainForClassWithShorthandSuffix("measures", this.getClass(), "Comparator");
 		
+		String aggrScheme = "MaxCoupling";
+		if (null != conf)
+		{
+			aggrScheme  = conf.getString("aggregation");
+		}
+		if (aggrScheme.equals("AverageLinkage"))
+		{
+			aggregation = AggregationScheme.AVERAGE_LINKAGE;
+		}
+		else if (aggrScheme.equals("Hausdorff"))
+		{
+			aggregation = AggregationScheme.HAUSDORFF;
+		}
+		else
+		{
+			//MaxCoupling is the default;
+			aggregation = AggregationScheme.MAX_COUPLING;
+			if (false == aggrScheme.equals("MaxCoupling"))
+			{
+				logger.warn("Unkown aggregation scheme '" + aggrScheme + "', using MaxCoupling.");	
+			}
+		}
 		// Get a serialization of the OWLAPI representation:
 		ByteArrayOutputStream sourceA = outputStreamForOntology(pair.getOntologyA());
 		ByteArrayOutputStream sourceB = outputStreamForOntology(pair.getOntologyB());
@@ -94,8 +127,23 @@ public class TripleBasedEntitySimComparator extends OntoSimComparator {
 		// here: TripleBasedEntitySim (OLAEntitySim doesn't work with OWL2)
 		
 		// Make the SetMeasure fully generic in order to get the casting right.
-		SetMeasure<?> gm = new MaxCoupling<Entity<OntResource>>(new TripleBasedEntitySim());
+		SetMeasure<?> gm = null;
 		
+		switch (aggregation)
+		{
+			case MAX_COUPLING:
+				gm = 
+				  new MaxCoupling<Entity<OntResource>>(new TripleBasedEntitySim());
+				break;
+			case AVERAGE_LINKAGE:
+				gm =
+				  new AverageLinkage<Entity<OntResource>>(new TripleBasedEntitySim());
+				break;
+			case HAUSDORFF:
+				gm =
+				  new Hausdorff<Entity<OntResource>>(new TripleBasedEntitySim());
+				break;
+		}
 		// It is unfortunate, but we need the unchecked cast here…
 		@SuppressWarnings("unchecked")
 		OntologySpaceMeasure m = new OntologySpaceMeasure((SetMeasure<Entity<?>>) gm); 
@@ -111,7 +159,20 @@ public class TripleBasedEntitySimComparator extends OntoSimComparator {
 	
 	public String getComparsionMethod()
 	{
-		return "Triple based entity similarity with MWMGM aggregation";
+		String agg = null;
+		switch (aggregation)
+		{
+		case MAX_COUPLING:
+			agg = "MaxCoupling";
+			break;
+		case AVERAGE_LINKAGE:
+			agg = "AverageLinkage";
+			break;
+		case HAUSDORFF:
+			agg = "Hausdorff";
+			break;
+		}
+		return "Triple based entity similarity with " + agg + " aggregation";
 	}
 	
 	/**
@@ -133,10 +194,12 @@ public class TripleBasedEntitySimComparator extends OntoSimComparator {
         {
         	manager.applyChange(new RemoveImport(ont, i));
         }
-        
-        manager.saveOntology(ont, new RDFXMLOntologyFormat(), stream);
+        RDFXMLOntologyFormat fmt = new RDFXMLOntologyFormat();
+       
+        manager.saveOntology(ont, fmt, stream);
         // Make sure all writes end up in the buffer:
         stream.flush();
+        logger.debug("Serialization: " + stream.toString());
         return stream;
 	}
 	

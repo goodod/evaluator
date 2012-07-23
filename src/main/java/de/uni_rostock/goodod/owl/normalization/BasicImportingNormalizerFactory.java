@@ -18,6 +18,10 @@
 package de.uni_rostock.goodod.owl.normalization;
 
 import org.semanticweb.owlapi.model.*;
+
+import de.uni_rostock.goodod.owl.OntologyCache;
+import de.uni_rostock.goodod.tools.Configuration;
+
 import java.util.Map;
 
 /**
@@ -26,16 +30,28 @@ import java.util.Map;
  */
 public class BasicImportingNormalizerFactory extends BasicNormalizerFactory {
 
-	private OWLOntologyLoaderConfiguration config;
+	private OWLOntologyLoaderConfiguration loaderConfig;
+	
+	
+	public BasicImportingNormalizerFactory()
+	{
+		if (config == null)
+		{
+			// Override a non-existent configuration with the superclass one.
+			config = Configuration.getConfiguration().configurationFromDomainForClassWithShorthandSuffix("normalizers", BasicNormalizerFactory.class, "NormalizerFactory");
+		}
+		populateMap();
+		loaderConfig = OntologyCache.getSharedCache().getOntologyLoaderConfiguration();
+	}
 	public BasicImportingNormalizerFactory(Map<IRI,IRI>iriMap, OWLOntologyLoaderConfiguration cfg)
 	{
 		super(iriMap);
-		config = cfg;
+		loaderConfig = cfg;
 	}
 	
 	@Override
 	public Normalizer getNormalizerForOntology(OWLOntology o)
 	{
-		return new BasicImportingNormalizer(o, importMap, config);
+		return new BasicImportingNormalizer(o, importMap, loaderConfig);
 	}
 }

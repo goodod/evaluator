@@ -21,6 +21,7 @@ package de.uni_rostock.goodod.owl.normalization;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.configuration.SubnodeConfiguration;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -29,6 +30,8 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
+
+import de.uni_rostock.goodod.tools.Configuration;
 
 /**
  * @author Niels Grewe
@@ -41,12 +44,18 @@ public abstract class AbstractNormalizer extends  OWLAxiomVisitorAdapter impleme
 	protected OWLOntologyManager manager;
 	protected OWLDataFactory factory;
 	protected Set<OWLOntologyChange> changes;
+	protected SubnodeConfiguration config;
 	public AbstractNormalizer(OWLOntology ont)
 	{
 		ontology = ont;
 		manager = ontology.getOWLOntologyManager();
 		factory = manager.getOWLDataFactory();
 		changes = new HashSet<OWLOntologyChange>();
+		// Just set the configuration if it's available.
+		config = Configuration.getConfiguration().configurationFromDomainForClassWithShorthandSuffix("normalizers",
+		  this.getClass(),
+		  "Normalizer");
+	
 	}
 	
 	public OWLOntology getOntology()

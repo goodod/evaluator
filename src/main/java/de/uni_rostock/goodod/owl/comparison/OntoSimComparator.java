@@ -43,7 +43,7 @@ import fr.inrialpes.exmo.ontowrap.owlapi30.OWLAPI3OntologyFactory;
 public abstract class OntoSimComparator implements Comparator {
 
 	static private OWLAPI3OntologyFactory ontoWrapFactory = new OWLAPI3OntologyFactory();
-	private static Log logger = LogFactory.getLog(OntoSimComparator.class);
+	protected static Log logger = LogFactory.getLog(OntoSimComparator.class);
 	protected OntologyPair pair;
 	protected HeavyLoadedOntology<?> ontologyA;
 	protected HeavyLoadedOntology<?> ontologyB;

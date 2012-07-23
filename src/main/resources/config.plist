@@ -9,5 +9,30 @@
     };
   testDir = "docs/Testaufgaben";
   threadCount = 4;
-  similarity = "csc";
+  similarity = "TripleBasedEntitySim";
+
+  normalizers = 
+  {
+	Basic = 
+    {
+	  importMap = 
+	  {
+		"http://purl.org/biotop/biotoplite_group_A_TEST.owl" = "http://purl.org/biotop/biotoplite.owl";
+		"http://purl.org/biotop/biotoplite_group_B_TEST.owl" = "http://purl.org/biotop/biotoplite.owl"
+	  }
+    } 
+
+	de.uni_rostock.goodod.owl.normalization.NormalizerChainFactory = 
+	{
+	  chain = ( BasicImporting, SuperClassConjunction, ClassExpressionNaming, TaxonomicDecomposition, SubsumptionMaterialization )
+	}
+  }
+
+  measures =
+  {
+	TripleBasedEntitySim =
+	{
+	  aggregation = "MaxCoupling"
+	}
+  }
 }

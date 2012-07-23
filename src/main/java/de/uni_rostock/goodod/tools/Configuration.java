@@ -134,12 +134,12 @@ public class Configuration {
 		
 		Option config = OptionBuilder.withArgName("configFile")
 				.hasArg()
-				.withDescription("Specific the location of the global configuration file.")
+				.withDescription("Specify the location of the global configuration file.")
 				.withLongOpt("config")
 				.create('c');
 		Option threads = OptionBuilder.withArgName("num")
 				.hasArg()
-				.withDescription("Specific the number of threads to use.")
+				.withDescription("Specify the number of threads to use.")
 				.withLongOpt("threads")
 				.withType(Number.class)
 				.create('t');
@@ -228,6 +228,10 @@ public class Configuration {
 	    	}
 	    	else
 	    	{
+	    		/*
+	    		 *  For > 1 file, we assume that both are ontologies and we
+	    		 *  construct ourselves a test case configuration for them.
+	    		 */
 	    		testConfig = new HierarchicalConfiguration();
 	    		String ontologyA = argList.get(0);
 	    		String ontologyB = argList.get(1);
@@ -301,5 +305,51 @@ public class Configuration {
 			builder.append(s + '\n');
 		}
 		return builder.toString();
+	}
+	
+	
+	public SubnodeConfiguration configurationFromDomainForClassWithShorthandSuffix(
+	  String domain,
+	  Class<?>theClass,
+	  String suffix)
+	{
+		String className = theClass.getName();
+		String shorthand = null;
+		SubnodeConfiguration theConf = null;
+		// commons-configuration uses dots to separate parts of a key path, so
+		// we need to mangle the class name.
+		String mangledName = className.replace(".", "..");
+		
+		// Check whether we can get a shorthand for the configuration of this class:
+		if (className.endsWith(suffix))
+		{
+			int lastDot = className.lastIndexOf(".");
+			shorthand = className.substring((lastDot + 1), (className.length() - suffix.length()));
+		}
+		String key = null;
+		if (shorthand != null)
+		{
+			key = domain + '.' + shorthand;
+
+			if (false == config.getKeys(key).hasNext())
+			{
+				key = null;
+			}
+		}
+		if (key == null)
+		{
+			key = domain + '.' + mangledName;
+			if (false == config.getKeys(key).hasNext())
+			{
+				key = null;
+			}
+		}
+		
+		if (key != null)
+		{
+			theConf = config.configurationAt(key);
+		}
+		
+		return theConf;
 	}
 }

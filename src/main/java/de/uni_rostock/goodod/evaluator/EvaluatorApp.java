@@ -74,25 +74,31 @@ public class EvaluatorApp
     	
     	logger.info(theTest.toString());
 	String similarityType = config.getString("similarity");
-	if (!(similarityType.equals("csc") || similarityType.equals("sc")))
-	{
-		similarityType = "csc";
-	}
+	
     	String baseName = similarityType + "-" + testFile.substring(0, (testFile.length() - 6));
     	
     	File precisionFile =  null; 
     	File recallFile = null;
     	File fmeasureFile = null;
-    	
+    	File similarityFile = null;
     	
     	precisionFile = new File(baseName + ".precision.csv");
     	recallFile = new File(baseName + ".recall.csv");
     	fmeasureFile = new File(baseName + ".fmeasure.csv");
+    	similarityFile = new File(baseName + ".csv");
+    	
     	try
     	{
-    		theTest.writePrecisionTable(new FileWriter(precisionFile));
-    		theTest.writeRecallTable(new FileWriter(recallFile));
-    		theTest.writeFMeasureTable(new FileWriter(fmeasureFile));
+    		if (theTest.providesFMeasure())
+    		{
+    			theTest.writePrecisionTable(new FileWriter(precisionFile));
+    			theTest.writeRecallTable(new FileWriter(recallFile));
+    			theTest.writeFMeasureTable(new FileWriter(fmeasureFile));
+    		}
+    		else
+    		{
+    			theTest.writeSimilarityTable(new FileWriter(similarityFile));
+    		}
     	}
     	catch (IOException e)
     	{

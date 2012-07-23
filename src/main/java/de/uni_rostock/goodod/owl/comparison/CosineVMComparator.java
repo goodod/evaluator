@@ -45,10 +45,12 @@ public class CosineVMComparator extends OntoSimComparator {
 		ontologyVector.add((LoadedOntology<?>)ontologyB);
 	}
 	
-	public SimilarityDissimilarityResult compare() throws ExecutionException, InterruptedException
+	public synchronized SimilarityDissimilarityResult compare() throws ExecutionException, InterruptedException
 	{
 	VectorSpaceMeasure m
 	  = new VectorSpaceMeasure(ontologyVector,new CosineVM(), DocumentCollection.WEIGHT.TF);
+
+	
 	return new SimilarityDissimilarityResult(getComparsionMethod(),
 	  pair,
 	  m.getSim(ontologyA, ontologyB),

@@ -50,10 +50,23 @@ public class OntologyCache {
 	private final Set<OWLOntologyIRIMapper> mappers;
 	private final Map<URI,FutureTask<OWLOntology>> futures;
 	private static Log logger = LogFactory.getLog(OntologyCache.class);
+	private static OntologyCache sharedCache;
 	private NormalizerFactory normalizerFactory;
 	private int pendingFutures;
 
+	public static synchronized OntologyCache getSharedCache()
+	{
+		return sharedCache;
+	}
 	
+	public static synchronized OntologyCache setupSharedCache(Set<OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
+	{
+		if (null == sharedCache)
+		{
+			sharedCache = new OntologyCache(IRIMappers, importsToIgnore, threads);
+		}
+		return sharedCache;
+	}
 	public OntologyCache(Set<OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
 	{
 		threadCount = threads;

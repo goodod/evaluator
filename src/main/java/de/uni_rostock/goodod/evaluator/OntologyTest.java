@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,18 +45,10 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
 import de.uni_rostock.goodod.owl.*;
-import de.uni_rostock.goodod.owl.comparison.CSCComparator;
 import de.uni_rostock.goodod.owl.comparison.Comparator;
 import de.uni_rostock.goodod.owl.comparison.ComparisonResult;
 import de.uni_rostock.goodod.owl.comparison.FMeasureComparisonResult;
-import de.uni_rostock.goodod.owl.comparison.SCComparator;
-import de.uni_rostock.goodod.owl.normalization.BasicImportingNormalizerFactory;
-import de.uni_rostock.goodod.owl.normalization.ClassExpressionNamingNormalizerFactory;
 import de.uni_rostock.goodod.owl.normalization.NormalizerChainFactory;
-import de.uni_rostock.goodod.owl.normalization.NormalizerFactory;
-import de.uni_rostock.goodod.owl.normalization.SubsumptionMaterializationNormalizerFactory;
-import de.uni_rostock.goodod.owl.normalization.SuperClassConjunctionNormalizerFactory;
-import de.uni_rostock.goodod.owl.normalization.TaxonomicDecompositionNormalizerFactory;
 import de.uni_rostock.goodod.tools.Configuration;
 
 /**
@@ -67,7 +60,8 @@ import de.uni_rostock.goodod.tools.Configuration;
 public class OntologyTest {
 
 	private final int threadCount;
-	private final String similarity;
+	private final Constructor<? extends Comparator> compCtor;
+	private static ClassLoader loader = OntologyTest.class.getClassLoader();
 	private Configuration globalConfig;
 	private HierarchicalConfiguration testConfig;
 	private URI rawOntology;
@@ -88,7 +82,7 @@ public class OntologyTest {
 		// Get a reference to the global configuration:
 		globalConfig = Configuration.getConfiguration();
 		threadCount = globalConfig.getInt("threadCount");
-		similarity = globalConfig.getString("similarity");
+		compCtor = getComparatorConstructor(globalConfig.getString("similarity"));
 		testConfig = testDescription;
 		
 		// Gather URIs for the raw, model and student ontologies.
@@ -181,14 +175,14 @@ public class OntologyTest {
 		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     	Set<URI> allOntologies = new HashSet<URI>(25);
     	OWLOntologyIRIMapper bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(bioTopLiteURI));
-    	OntologyCache cache = new OntologyCache(Collections.singleton(bioTopLiteMapper), getIgnoredImports(), threadCount);
-    	NormalizerFactory importer = new BasicImportingNormalizerFactory(importMap, cache.getOntologyLoaderConfiguration());
+    	OntologyCache cache = OntologyCache.setupSharedCache(Collections.singleton(bioTopLiteMapper), getIgnoredImports(), threadCount);
+    	/*NormalizerFactory importer = new BasicImportingNormalizerFactory(importMap, cache.getOntologyLoaderConfiguration());
 		NormalizerFactory intersector = new SuperClassConjunctionNormalizerFactory();
     	ClassExpressionNameProvider provider = new ClassExpressionNameProvider();
 		NormalizerFactory namer = new ClassExpressionNamingNormalizerFactory(provider);
 		NormalizerFactory decomposer = new TaxonomicDecompositionNormalizerFactory(provider);
-		NormalizerFactory subsumer = new SubsumptionMaterializationNormalizerFactory();
-		NormalizerChainFactory chain = new NormalizerChainFactory(importer, intersector, namer, decomposer, subsumer);
+		NormalizerFactory subsumer = new SubsumptionMaterializationNormalizerFactory();*/
+		NormalizerChainFactory chain =  new NormalizerChainFactory();/* new NormalizerChainFactory(importer, intersector, namer, decomposer, subsumer);*/
 		cache.setNormalizerFactory(chain);
 		
 		if (logger.isDebugEnabled())
@@ -308,19 +302,7 @@ public class OntologyTest {
 		public void run()
 		{
 			
-    		Comparator comp = null;
-		if (similarity.equals("sc"))
-		{
-			comp = new SCComparator(pair, considerImports);
-		}
-		else
-		{
-			comp = new CSCComparator(pair, considerImports);
-			if (false == similarity.equals("csc"))
-			{
-				logger.warn("Invalid similarity computation method '" + similarity + "'. Defaulting to csc. Please specify either sc or csc");
-			}
-		}	
+    		Comparator comp = getComparator(pair, considerImports);
     		ComparisonResult res = null;
     		try
     		{
@@ -477,6 +459,55 @@ public class OntologyTest {
 		return new TestResult(iPre, pre, reference, computed);
 	}
 	
+	private Constructor<? extends Comparator> getComparatorConstructor(String similarity)
+	{
+		Class<? extends Comparator> theClass = null;
+		Constructor<? extends Comparator> ctor = null;
+		String className = null;
+		if(similarity.contains("."))
+		{
+			className = similarity;
+		}
+		else
+		{
+			className = "de.uni_rostock.goodod.owl.comparison." + similarity + "Comparator";
+		}
+		// Assume qualified name.
+		try
+		{
+			theClass = loader.loadClass(className).asSubclass(Comparator.class);
+		}
+		catch (Throwable e)
+		{
+			logger.fatal("Could not load comparator class '" + similarity);
+			System.exit(1);
+		}
+		
+		try
+		{
+			ctor = theClass.getDeclaredConstructor(OntologyPair.class, boolean.class);
+		}
+		catch (Throwable e)
+		{
+			logger.fatal("Class " + theClass + " has no suitable constructor");
+			System.exit(1);
+		}
+		return ctor;
+	}
+	
+	private Comparator getComparator(OntologyPair pair, boolean includeImports)
+	{
+		try
+		{
+			return compCtor.newInstance(pair, includeImports);
+		}
+		catch (Throwable e)
+		{
+			logger.fatal("Could not instantiate comparator");
+			System.exit(1);
+		}
+		return null;
+	}
 	public TestResult getTestResultGroupAAgainstReference()
 	{
 		Set<URI> ref;
@@ -736,5 +767,13 @@ public class OntologyTest {
 		writeTable(w, StatType.SIMILARITY);
 	}
 	
+	public boolean providesFMeasure()
+	{
+		if (resultMap.isEmpty())
+		{
+			return false;
+		}
+		return resultMap.values().iterator().next().values().iterator().next() instanceof FMeasureComparisonResult;
+	}
 
 }

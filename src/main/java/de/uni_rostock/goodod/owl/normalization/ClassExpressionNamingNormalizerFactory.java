@@ -32,7 +32,7 @@ public class ClassExpressionNamingNormalizerFactory extends
 	
 	public ClassExpressionNamingNormalizerFactory()
 	{
-		provider = new ClassExpressionNameProvider();
+		provider = ClassExpressionNameProvider.getSharedProvider();
 	}
 	
 	public ClassExpressionNamingNormalizerFactory(ClassExpressionNameProvider prov)
