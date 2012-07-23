@@ -70,7 +70,6 @@ public class OntologyTest {
 	private Set<URI> groupBOntologies;
 	private Map<URI,Set<URI>> failedComparisons;
 	private URI bioTopLiteURI;
-	private Map<IRI,IRI>importMap;
 	private Set<IRI>testIRIs;
 	private Map<URI,Map<URI,ComparisonResult>> resultMap;
 	private boolean considerImports;
@@ -135,17 +134,11 @@ public class OntologyTest {
 		{
 			logger.warn("Could not read BioTopLite.");
 		}
-		bioTopLiteURI = biotopF.toURI();
+		else
+		{
+			bioTopLiteURI = biotopF.toURI();
+		}
 		
-		
-		IRI biotopIRI = IRI.create("http://purl.org/biotop/biotoplite.owl");
-    	importMap = new HashMap<IRI,IRI>();
-    	
-    		
-		for (String str: globalConfig.getStringArray("ignoredImports"))
-    	{
-			importMap.put(IRI.create(str),biotopIRI);
-    	}
 		
 		testIRIs = getIRIsToTest();
 		
@@ -164,7 +157,12 @@ public class OntologyTest {
 	
 	public Set<IRI> getIgnoredImports()
 	{
-		return importMap.keySet();
+		Set<IRI> IRIs = new HashSet<IRI>();
+		for (String s : globalConfig.getStringArray("ignoredImports"))
+		{
+			IRIs.add(IRI.create(s));
+		}
+		return IRIs;
 	}
 	
 	public void executeTest() throws Throwable
@@ -174,21 +172,16 @@ public class OntologyTest {
     	
 		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     	Set<URI> allOntologies = new HashSet<URI>(25);
-    	OWLOntologyIRIMapper bioTopLiteMapper = new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(bioTopLiteURI));
-    	OntologyCache cache = OntologyCache.setupSharedCache(Collections.singleton(bioTopLiteMapper), getIgnoredImports(), threadCount);
-    	/*NormalizerFactory importer = new BasicImportingNormalizerFactory(importMap, cache.getOntologyLoaderConfiguration());
-		NormalizerFactory intersector = new SuperClassConjunctionNormalizerFactory();
-    	ClassExpressionNameProvider provider = new ClassExpressionNameProvider();
-		NormalizerFactory namer = new ClassExpressionNamingNormalizerFactory(provider);
-		NormalizerFactory decomposer = new TaxonomicDecompositionNormalizerFactory(provider);
-		NormalizerFactory subsumer = new SubsumptionMaterializationNormalizerFactory();*/
-		NormalizerChainFactory chain =  new NormalizerChainFactory();/* new NormalizerChainFactory(importer, intersector, namer, decomposer, subsumer);*/
+    	
+    	Set<? extends OWLOntologyIRIMapper> bioTopLiteMapper = null;
+    	if (null != bioTopLiteURI)
+    	{
+    		bioTopLiteMapper = Collections.singleton(new SimpleIRIMapper(IRI.create("http://purl.org/biotop/biotoplite.owl"),IRI.create(bioTopLiteURI)));
+    	}
+    	OntologyCache cache = OntologyCache.setupSharedCache(bioTopLiteMapper, getIgnoredImports(), threadCount);
+    	NormalizerChainFactory chain =  new NormalizerChainFactory();/* new NormalizerChainFactory(importer, intersector, namer, decomposer, subsumer);*/
 		cache.setNormalizerFactory(chain);
 		
-		if (logger.isDebugEnabled())
-		{
-			writeNormalizedOntologiesTo(Collections.singleton(bioTopLiteURI), cache, new File(System.getProperty("java.io.tmpdir")));
-		}
     	allOntologies.addAll(groupAOntologies);
     	allOntologies.addAll(groupBOntologies);
     	if (null != modelOntology)

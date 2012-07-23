@@ -47,7 +47,7 @@ public class OntologyCache {
 	private final int threadCount;
 	private ExecutorService executor;
 	private final OWLOntologyLoaderConfiguration config;
-	private final Set<OWLOntologyIRIMapper> mappers;
+	private final Set<? extends OWLOntologyIRIMapper> mappers;
 	private final Map<URI,FutureTask<OWLOntology>> futures;
 	private static Log logger = LogFactory.getLog(OntologyCache.class);
 	private static OntologyCache sharedCache;
@@ -59,7 +59,7 @@ public class OntologyCache {
 		return sharedCache;
 	}
 	
-	public static synchronized OntologyCache setupSharedCache(Set<OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
+	public static synchronized OntologyCache setupSharedCache(Set<? extends OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
 	{
 		if (null == sharedCache)
 		{
@@ -67,7 +67,7 @@ public class OntologyCache {
 		}
 		return sharedCache;
 	}
-	public OntologyCache(Set<OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
+	public OntologyCache(Set<? extends OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
 	{
 		threadCount = threads;
 		pendingFutures = 0;
@@ -164,9 +164,12 @@ public class OntologyCache {
 					public OWLOntology call() throws ExecutionException
 					{
 						OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-						for (OWLOntologyIRIMapper m : mappers)
+						if (null != mappers)
 						{
-							manager.addIRIMapper(m);
+							for (OWLOntologyIRIMapper m : mappers)
+							{
+								manager.addIRIMapper(m);
+							}
 						}
 						FileDocumentSource source = new FileDocumentSource(new File(u));
 						OWLOntology ontology;
