@@ -199,7 +199,6 @@ public class TripleBasedEntitySimComparator extends OntoSimComparator {
         manager.saveOntology(ont, fmt, stream);
         // Make sure all writes end up in the buffer:
         stream.flush();
-        logger.debug("Serialization: " + stream.toString());
         return stream;
 	}
 	
