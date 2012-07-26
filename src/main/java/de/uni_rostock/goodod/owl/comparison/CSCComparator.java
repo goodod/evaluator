@@ -58,7 +58,7 @@ public class CSCComparator extends SCComparator {
 		for (OWLClass candidate : candidates)
 		{
 		
-			if (null != findClass(candidate, ontB))
+			if (null != delegate.findClass(candidate, ontB, ontA))
 			{
 				extract.add(candidate);
 			}
@@ -67,7 +67,7 @@ public class CSCComparator extends SCComparator {
 		 *  The class itself belongs to the extract as well and prevents us
 		 *  from doing divisions by zero.
 		 */
-		if (null != findClass(c, ontB))
+		if (null != delegate.findClass(c, ontB, ontA))
 		{
 			extract.add(c);
 		}
@@ -104,7 +104,7 @@ public class CSCComparator extends SCComparator {
 				for (OWLClass c : ontologyA.getClassesInSignature())
 				{
 					//Find all classes that are not also in B.
-					if (null == findClass(c,ontologyB))
+					if (null == delegate.findClass(c,ontologyB, ontologyA))
 					{
 						//Test how well they match our concept and use the maximum
 						double newPrecision = computeTaxonomicPrecision(c, classB, ontologyA, ontologyB);
@@ -118,7 +118,7 @@ public class CSCComparator extends SCComparator {
 				for (OWLClass c : ontologyB.getClassesInSignature())
 				{
 					//Find all classes that are not also in A.
-					if (null == findClass(c,ontologyA))
+					if (null == delegate.findClass(c,ontologyA, ontologyB))
 					{
 						// Test how well they match our concept and use the maximum.
 						double newPrecision = computeTaxonomicPrecision(classA, c, ontologyA, ontologyB);
@@ -163,7 +163,19 @@ public class CSCComparator extends SCComparator {
 		{
 			return 0;
 		}
-		return (((double)commonExtract.size())/(double)extractA.size());
+		
+		double commonWeight = 0;
+		double extractAWeight = 0;
+		
+		for (OWLClass c : commonExtract)
+		{
+			commonWeight += delegate.getClassWeight(c, ontA, ontB);
+		}
+		for (OWLClass c : extractA)
+		{
+			extractAWeight += delegate.getClassWeight(c, ontA, ontB);
+		}
+		return (commonWeight/extractAWeight);
 	}
 	
 }

@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.*;
 
 import de.uni_rostock.goodod.owl.OntologyPair;
@@ -38,6 +39,7 @@ public class SCComparator implements Comparator {
 
 	private OntologyPair pair;
 	boolean includeImports;
+	protected ComparatorDelegate delegate;
 	
 	/**
 	 * 
@@ -50,6 +52,15 @@ public class SCComparator implements Comparator {
 		super();
 		pair = thePair;
 		includeImports = doIncludeImports;
+		delegate = new DefaultComparatorDelegate(includeImports);
+	}
+	
+	public void setDelegate(ComparatorDelegate del)
+	{
+		if (null != del)
+		{
+			delegate = del;
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -81,8 +92,7 @@ public class SCComparator implements Comparator {
 
 	private static boolean notNaN(double d)
 	{
-		Double o = new Double(d);
-		return (false == o.isNaN());
+		return (false == Double.isNaN(d));
 	}
 
 	/**
@@ -95,17 +105,20 @@ public class SCComparator implements Comparator {
 	 */
 	protected FMeasureComparisonResult compareClasses(Set<OWLClass>classes, Set<IRI> notFound) throws InterruptedException, ExecutionException
 	{
-		int classCount = classes.size() + notFound.size();
+		double overallWeight = 0;
 		// Classes that are not available in the computed ontology by definition achieve maximum precision
 		// because they don't return any irrelevant concept.
 		double precisionAccumulator = 0;
 		double recallAccumulator = 0;
+		OWLOntology ontologyA = pair.getOntologyA();
+		OWLOntology ontologyB = pair.getOntologyB();
 		for (OWLClass classA : classes)
 		{
-			OWLClass classB = findClass(classA, pair.getOntologyB());
-			double newPrec = getTaxonomicPrecision(classA, classB, pair.getOntologyA(), pair.getOntologyB());
+			OWLClass classB = delegate.findClass(classA, ontologyA, ontologyB);
+			overallWeight += delegate.getClassWeight(classB, ontologyA, ontologyB);
+			double newPrec = getTaxonomicPrecision(classA, classB, ontologyA, pair.getOntologyB());
 			// Lucky fact: precision of A vs. B is the same thing as recall B vs. A.
-			double newRec= getTaxonomicPrecision(classB, classA, pair.getOntologyB(), pair.getOntologyA());
+			double newRec= getTaxonomicPrecision(classB, classA, ontologyB, ontologyA);
 			if (notNaN(newPrec))
 			{
 				precisionAccumulator += newPrec;
@@ -119,10 +132,11 @@ public class SCComparator implements Comparator {
 		{
 			if (notFound.contains(classB.getIRI()))
 			{
-				OWLClass classA = findClass(classB, pair.getOntologyA());
-				double newPrec = getTaxonomicPrecision(classA, classB, pair.getOntologyA(), pair.getOntologyB());
+				OWLClass classA = delegate.findClass(classB, ontologyA, ontologyB);
+				overallWeight += delegate.getClassWeight(classB, ontologyA, ontologyB);
+				double newPrec = getTaxonomicPrecision(classA, classB, ontologyA, ontologyB);
 				// Lucky fact: precision of A vs. B is the same thing as recall B vs. A.
-				double newRec= getTaxonomicPrecision(classB, classA, pair.getOntologyB(), pair.getOntologyA());
+				double newRec= getTaxonomicPrecision(classB, classA, ontologyB, ontologyA);
 				if (notNaN(newPrec))
 				{
 					precisionAccumulator += newPrec;
@@ -135,8 +149,8 @@ public class SCComparator implements Comparator {
 			}	
 
 		}
-		double precision = precisionAccumulator / (double)classCount;
-		double recall = recallAccumulator / (double)classCount;
+		double precision = precisionAccumulator / overallWeight;
+		double recall = recallAccumulator / overallWeight;
 	
 		return new FMeasureComparisonResult(getComparisonMethod(), pair, precision, recall);
 		
@@ -198,56 +212,9 @@ public class SCComparator implements Comparator {
 		return extract;
 	}
 	
-	/**
-	 * Finds a class with the same name in the named ontology.
-	 * @param classA The class for which to find a twin.
-	 * @param o The ontology to consider.
-	 * @return The class from the other ontology.
-	 */
-	protected OWLClass findClass(OWLClass classA, OWLOntology o)
-	{
-		IRI iriA = classA.getIRI();
-		Set<OWLEntity> entities = o.getEntitiesInSignature(iriA, includeImports);
-		if ((null != entities) && (0 != entities.size()))
-		{
-			for (OWLEntity e : entities)
-			{
-				if (e instanceof OWLClass)
-				{
-					return e.asOWLClass();
-				}
-			}
-		}
-		
-		/* 
-		 * If we got thus far, we have no exact match and need to search for a
-		 * fragment-wise on.
-		 */
-		Set<OWLClass>classes = o.getClassesInSignature(includeImports);
-		for (OWLClass c : classes)
-		{
-			if (equalIRIsOrFragments(iriA, c.getIRI()))
-			{
-				return c;
-			}
-		}
-		
-		return null;
-	}
+
 	
-	protected boolean equalIRIsOrFragments(IRI iriA, IRI iriB)
-	{
-		if (iriA.equals(iriB))
-		{
-			return true;
-		}
-		if (iriA.getFragment().equals(iriB.getFragment()))
-		{
-			return true;
-		}
-		
-		return false;
-	}
+	
 	
 	protected Set<OWLClass> commonClasses(Set<OWLClass> extractA, Set<OWLClass> extractB)
 	{
@@ -255,16 +222,18 @@ public class SCComparator implements Comparator {
 		// TODO: Nested loop. There is probably a smarter way.
 		for (OWLClass classA : extractA)
 		{
-			/*
-			 *  But at least we can extract the loop invariant, just in case
-			 *  the JVM is as stupid as we all think it is.
-			 */
-			IRI iriA = classA.getIRI();
 			for (OWLClass classB : extractB)
 			{
-				if (equalIRIsOrFragments(iriA,classB.getIRI()))
+				try
 				{
-					commonClasses.add(classA);
+					if (delegate.classesConsideredEqual(classA,pair.getOntologyA(),classB, pair.getOntologyB()))
+					{
+						commonClasses.add(classA);
+					}
+				}
+				catch (Throwable e)
+				{
+					Logger.getLogger(this.getClass()).error("Could not get ontologies.", e);
 				}
 			}
 			

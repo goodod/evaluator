@@ -9,7 +9,7 @@
     };
   testDir = "docs/Testaufgaben";
   threadCount = 4;
-  similarity = "TripleBasedEntitySim";
+  similarity = "CSC";
 
   normalizers = 
   {
