@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
 import org.apache.log4j.ConsoleAppender;
@@ -54,6 +55,13 @@ public class EvaluatorApp
 		config = Configuration.getConfiguration(args);
     
 	
+		if (config.getBoolean("helpMode", false))
+		{
+			HelpFormatter formatter = new HelpFormatter();
+			formatter.printHelp( "evaluator [option]... <test_spec.plist | ontology1.owl ontology2.owl> ", config.getOptions());
+			System.exit(0);
+		}
+		
 		if (config.getBoolean("debug", false))
 		{
 			root.setLevel(Level.DEBUG);

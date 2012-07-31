@@ -152,8 +152,9 @@ public class Configuration {
 		options.addOption(config);
 		options.addOption(threads);
 		options.addOption(similarity);
-		options.addOption("h", "help", false, "Print this help text");
-		options.addOption("d", "debug", false, "Enable debugging");
+		options.addOption("h", "help", false, "Print this help text.");
+		options.addOption("d", "debug", false, "Enable debugging.");
+		options.addOption("1", "one-way", false, "Only do single direction comparison, not cross-comparison.");
 	}
 	private HierarchicalConfiguration getConfigMap(String args[])
 	{
@@ -161,6 +162,7 @@ public class Configuration {
     	CombinedConfiguration cfg = new CombinedConfiguration();
     	HierarchicalConfiguration envCfg = new CombinedConfiguration();
 		String repoRoot = System.getenv("GOODOD_REPO_ROOT");
+		boolean helpMode = false;
 		
 		envCfg.addProperty("repositoryRoot", repoRoot);
     	if (null == args)
@@ -176,7 +178,7 @@ public class Configuration {
     	}
     	 catch( ParseException exception )
     	 {
-    		 logger.fatal("Could not validate command-line", exception);
+    		 logger.fatal("Could not validate command-line.", exception);
     		 System.exit(1);
     	 }
     	
@@ -196,21 +198,25 @@ public class Configuration {
     	if (cmdLine.hasOption('h'))
     	{
     		envCfg.addProperty("helpMode", true);
+    		helpMode = true;
     	}
     	if (cmdLine.hasOption('d'))
     	{
     		envCfg.addProperty("debug", true);
     	}
-    	
+    	if (cmdLine.hasOption('1'))
+    	{
+    		envCfg.addProperty("one-way", true);
+    	}
     	//Fetch the remaining arguments, but alas, commons-cli is not generics aware
     	@SuppressWarnings("unchecked")
 		List<String> argList = cmdLine.getArgList();
     	HierarchicalConfiguration testConfig = null;
     	try
     	{
-    		if (argList.isEmpty())
+    		if (argList.isEmpty() && (false == helpMode))
     		{
-    			logger.fatal("No test specification provided");
+    			logger.fatal("No test specification provided.");
     			System.exit(1);
     		}
     		else if (1 == argList.size())
@@ -226,7 +232,7 @@ public class Configuration {
 	    		}
 	    		envCfg.addProperty("testFile", testFile.toString());
 	    	}
-	    	else
+	    	else if (false == helpMode)
 	    	{
 	    		/*
 	    		 *  For > 1 file, we assume that both are ontologies and we
@@ -245,18 +251,21 @@ public class Configuration {
 	    		testConfig.getRoot().addChild(studentOntologies);
 	    		if (2 < argList.size())
 	    		{
-	    			logger.warn("Ignoring extra arguments to comparison between individual ontologies");
+	    			logger.warn("Ignoring extra arguments to comparison between individual ontologies.");
 	    		}
 	    		envCfg.addProperty("testFile", "unknown.plist");
 	    	}
     	}
     	catch (Throwable t)
     	{
-    		logger.fatal("Could not load test configuration", t);
+    		logger.fatal("Could not load test configuration.", t);
     		System.exit(1);
     	}
     	cfg.addConfiguration(envCfg, "environment");
-    	cfg.addConfiguration(testConfig, "TestSubTree", "testDescription");
+    	if (false == helpMode)
+    	{
+    		cfg.addConfiguration(testConfig, "TestSubTree", "testDescription");
+    	}
 		return cfg;
 	}
 
@@ -351,5 +360,12 @@ public class Configuration {
 		}
 		
 		return theConf;
+	}
+
+	/**
+	 * @return The command-line options defined for this configuration.
+	 */
+	public Options getOptions() {
+		return options;
 	}
 }

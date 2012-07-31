@@ -100,7 +100,8 @@ public class TripleBasedEntitySimComparator extends OntoSimComparator {
 		ByteArrayInputStream destinationA = new ByteArrayInputStream(sourceA.toByteArray());
 		ByteArrayInputStream destinationB = new ByteArrayInputStream(sourceB.toByteArray());
 		
-		// Indicate to the JVM that it can collect the output streams
+		// Indicate to the JVM that it can collect the output streams, just in
+		// case it needs to GC while generating the JENA model.
 		sourceA = null;
 		sourceB = null;
 	
