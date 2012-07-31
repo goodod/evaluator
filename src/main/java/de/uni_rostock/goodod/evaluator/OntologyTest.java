@@ -171,8 +171,8 @@ public class OntologyTest {
 		
     	
 		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-    	Set<URI> allOntologies = new HashSet<URI>(25);
-    	
+    	Set<URI> fromOntologies = new HashSet<URI>(25);
+    	Set<URI> toOntologies = new HashSet<URI>(25);
     	Set<? extends OWLOntologyIRIMapper> bioTopLiteMapper = null;
     	if (null != bioTopLiteURI)
     	{
@@ -182,18 +182,44 @@ public class OntologyTest {
     	NormalizerChainFactory chain =  new NormalizerChainFactory();/* new NormalizerChainFactory(importer, intersector, namer, decomposer, subsumer);*/
 		cache.setNormalizerFactory(chain);
 		
-    	allOntologies.addAll(groupAOntologies);
-    	allOntologies.addAll(groupBOntologies);
+    	fromOntologies.addAll(groupAOntologies);
+    	
+    	if (globalConfig.getBoolean("one-way", false))
+    	{
+    		/*
+    		 * If one way comparisons are requested, we only compare group A to
+    		 * group B (and model).
+    		 */
+    		toOntologies.addAll(groupBOntologies);
+    	}
+    	else
+    	{
+
+        	/*
+        	 * By default, we do cross-comparisons between the groups, so we
+        	 * create a global set for both. For simplicity, this just 
+        	 * means adding the second set to fromOntologies and aliasing it
+        	 * as toOntologies.
+        	 */
+    		
+    		fromOntologies.addAll(groupBOntologies);
+    		toOntologies = fromOntologies;
+    	}
+    	
     	if (null != modelOntology)
     	{
-    		allOntologies.add(modelOntology);
+    		toOntologies.add(modelOntology);
     	}
     	logger.info("Running comparisons for test '" + getTestName() +"'.");
     	
-    	for (URI u1 : allOntologies)
+    	for (URI u1 : fromOntologies)
     	{
-    		for (URI u2 : allOntologies)
+    		for (URI u2 : toOntologies)
     		{
+    			if (u1.equals(u2))
+    			{
+    				continue;
+    			}
     			/*
     			 *  Working with the ontologies is resource intensive. We want
     			 *  to handle more than one at a time, especially on multicore
@@ -244,7 +270,7 @@ public class OntologyTest {
     	logger.info("Comparisons on '" + getTestName() + "' completed.");
     	if (logger.isDebugEnabled())
     	{
-    		writeNormalizedOntologiesTo(allOntologies, cache, new File(System.getProperty("java.io.tmpdir")));
+    		writeNormalizedOntologiesTo(fromOntologies, cache, new File(System.getProperty("java.io.tmpdir")));
     	}
     	cache.teardown();
     	cache = null;
@@ -685,7 +711,16 @@ public class OntologyTest {
 		String line = '"' + shortNameForURI(u) + '"' + ",";
 		for (URI u2 : ontologies)
 		{
-			ComparisonResult res = resultMap.get(u).get(u2);
+			Map<URI,ComparisonResult> column = resultMap.get(u);
+			ComparisonResult res = null;
+			if (null == column)
+			{
+				continue;
+			}
+			else
+			{
+				res = column.get(u2);
+			}
 			double value = 0;
 			if (null != res)
 			{
@@ -733,6 +768,10 @@ public class OntologyTest {
     		{
     			continue;
     		}
+    		if (null == resultMap.get(u))
+    		{
+    			continue;
+    		}
     		theTable = theTable + writeTableLine(u, ontologyList, type) + '\n';
     	}
     	writer.write(theTable);
@@ -768,5 +807,6 @@ public class OntologyTest {
 		}
 		return resultMap.values().iterator().next().values().iterator().next() instanceof FMeasureComparisonResult;
 	}
+
 
 }
