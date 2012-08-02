@@ -43,7 +43,7 @@
       <directory>${project.basedir}</directory>
       <outputDirectory>META-INF</outputDirectory>
       <includes>
-        <include>COPYING</include>
+        <include>LICENSE</include>
 	<include>README</include>
       </includes>
     </fileSet>
