@@ -4,7 +4,7 @@
 
   <groupId>de.uni-rostock.goodod</groupId>
   <artifactId>evaluator</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.1</version>
 
   <name>GoodOD Ontology Evaluator</name>
 
