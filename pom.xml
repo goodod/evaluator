@@ -92,6 +92,9 @@
             <descriptors>
                 <descriptor>src/main/assembly/eval-assembly.xml</descriptor>
             </descriptors>
+	    <descriptorRefs>
+		<descriptorRef>src</descriptorRef>
+	    </descriptorRefs>
                     <archive>
                         <manifest>
                             <mainClass>de.uni_rostock.goodod.evaluator.EvaluatorApp</mainClass>
