@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Niels Grewe <niels.grewe@uni-rostock.de>
@@ -52,7 +53,8 @@ public class OntologyCache {
 	private static Log logger = LogFactory.getLog(OntologyCache.class);
 	private static OntologyCache sharedCache;
 	private NormalizerFactory normalizerFactory;
-	private int pendingFutures;
+	private AtomicInteger pendingFutures;
+	static public IRI originallyDefinedIRI = IRI.create("http://www.iph.uni-rostock.de/goodod/autogen.owl#originallyDefined");
 
 	public static synchronized OntologyCache getSharedCache()
 	{
@@ -70,7 +72,7 @@ public class OntologyCache {
 	public OntologyCache(Set<? extends OWLOntologyIRIMapper>IRIMappers, Set<IRI>importsToIgnore, int threads)
 	{
 		threadCount = threads;
-		pendingFutures = 0;
+		pendingFutures = new AtomicInteger(0);
 		executor = Executors.newFixedThreadPool(threadCount);
 		OWLOntologyLoaderConfiguration interimConfig = new OWLOntologyLoaderConfiguration();
 		
@@ -102,7 +104,7 @@ public class OntologyCache {
 	
 	private synchronized void futureDone()
 	{
-		pendingFutures--;
+		pendingFutures.decrementAndGet();
 	}
 
 	public synchronized void removeOntologyAtURI(URI u)
@@ -135,7 +137,7 @@ public class OntologyCache {
 	public FutureTask<OWLOntology> getOntologyAtURI(URI theURI) throws OWLOntologyCreationException
 	{
 		int waitCount = 0;
-		while (pendingFutures > threadCount)
+		while (pendingFutures.get() < threadCount)
 		{
 			if (0 == ++waitCount % 8 )
 			{
@@ -176,7 +178,7 @@ public class OntologyCache {
 						try 
 						{
 							ontology = manager.loadOntologyFromOntologyDocument(source, config);
-						
+							markOriginalClasses(ontology);
 							logger.info("Loading and normalizing ontology from " + u.toString() + ".");
 							if (null != normalizerFactory)
 							{
@@ -193,10 +195,29 @@ public class OntologyCache {
 					}});
 		futures.put(u, future);
 		// We track our pending futures
-		pendingFutures++;
+		pendingFutures.incrementAndGet();
 		executor.execute(future);
 		
 		return future;
+	}
+	
+	/**
+	 * Adds annotations to all classes defined in the ontology, stating that
+	 * they originally belong to the ontology. 
+	 * 
+	 * @param ontology The ontology to mark up.
+	 */
+	private void markOriginalClasses(OWLOntology ontology)
+	{
+		OWLOntologyManager manager = ontology.getOWLOntologyManager();
+		OWLDataFactory factory = manager.getOWLDataFactory();
+		OWLAnnotationProperty prop = factory.getOWLAnnotationProperty(originallyDefinedIRI);
+		OWLAnnotationValue theTrue = factory.getOWLLiteral(true);
+		for (OWLClass c : ontology.getClassesInSignature(false))
+		{
+			OWLAnnotationAssertionAxiom ax = factory.getOWLAnnotationAssertionAxiom(prop,c.getIRI(),theTrue);
+			manager.addAxiom(ontology, ax);
+		}
 	}
 	
 	public void setNormalizerFactory(NormalizerFactory n)

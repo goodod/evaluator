@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.*;
 
+import de.uni_rostock.goodod.owl.OntologyCache;
 import de.uni_rostock.goodod.owl.OntologyPair;
 import de.uni_rostock.goodod.owl.SubClassCollector;
 import de.uni_rostock.goodod.owl.SuperClassCollector;
@@ -68,7 +69,29 @@ public class SCComparator implements Comparator {
 	 */
 	public FMeasureComparisonResult compare() throws InterruptedException, ExecutionException {
 		Set<IRI> noIRIs = Collections.emptySet();
-		return compareClasses(pair.getOntologyA().getClassesInSignature(includeImports), noIRIs);
+		Set<OWLClass> classSet = new HashSet<OWLClass>();
+		OWLOntology ontologyA = pair.getOntologyA();
+		OWLAnnotationValue theTrue = ontologyA.getOWLOntologyManager().getOWLDataFactory().getOWLLiteral(true);
+		for (OWLClass c: ontologyA.getClassesInSignature(includeImports))
+		{
+			if (false == includeImports)
+			{
+				Set<OWLAnnotationAssertionAxiom> annotations = ontologyA.getAnnotationAssertionAxioms(c.getIRI());
+				for (OWLAnnotationAssertionAxiom ax : annotations)
+				{
+					if ((ax.getProperty().getIRI().equals(OntologyCache.originallyDefinedIRI))
+							&& (ax.getValue().equals(theTrue)))	
+					{
+						classSet.add(c);
+					}
+				}
+			}
+			else
+			{
+				classSet.add(c);
+			}
+		}
+		return compareClasses(classSet, noIRIs);
 	}
 
 	/* (non-Javadoc)

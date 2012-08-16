@@ -32,6 +32,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
@@ -74,7 +76,7 @@ public class OntologyTest {
 	private Map<URI,Map<URI,ComparisonResult>> resultMap;
 	private boolean considerImports;
 	private static Log logger = LogFactory.getLog(OntologyTest.class);
-	private int inProgressCount;
+	private AtomicInteger inProgressCount;
 	public OntologyTest(HierarchicalConfiguration testDescription) throws FileNotFoundException, IOException, OWLOntologyCreationException, ConfigurationException
 	{
 		
@@ -83,6 +85,7 @@ public class OntologyTest {
 		threadCount = globalConfig.getInt("threadCount");
 		compCtor = getComparatorConstructor(globalConfig.getString("similarity"));
 		testConfig = testDescription;
+		inProgressCount = new AtomicInteger();
 		
 		// Gather URIs for the raw, model and student ontologies.
 		String repoRoot = globalConfig.getString("repositoryRoot");
@@ -227,7 +230,7 @@ public class OntologyTest {
     			 *  generating massive cache or memory churn is very smart.
     			 */
     			int waitCount = 0;
-    			while (inProgressCount > threadCount)
+    			while (inProgressCount.get() > threadCount)
     			{
     				if (0 == ++waitCount % 8 )
     				{
@@ -351,12 +354,12 @@ public class OntologyTest {
 	
 	private synchronized void comparisonStarted()
 	{
-		inProgressCount++;
+		inProgressCount.incrementAndGet();
 	}
 	
 	private synchronized void comparisonDone()
 	{
-		inProgressCount--;
+		inProgressCount.decrementAndGet();
 	}
 	
 	private synchronized void pushResult(URI o1, URI o2, ComparisonResult res)
