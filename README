@@ -61,6 +61,9 @@ line switch. The relevant configuration values are the following:
 		option here is for triple based entity similarity, where you can
 		choose between three aggregation schemes (MaxCoupling, AverageLinkage,
 		Hausdorff).
+Usage:
+
+Type `java -jar evaluator-0.1-SNAPSHOT-eval-assembly.jar -h' for usage instructions.
 
 License:
 
