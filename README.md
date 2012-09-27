@@ -71,4 +71,4 @@ License
 -------
 
 The software is made available under the GNU General Public License (GPL),
-version 3  or later (see COPYING).
+version 3  or later (see LICENSE).
