@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.configuration.plist.XMLPropertyListConfiguration;
+import org.apache.commons.configuration.tree.OverrideCombiner;
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -222,15 +223,9 @@ public class Configuration {
     		else if (1 == argList.size())
 	    	{
 	    		File testFile = new File(argList.get(0));
-	    		if (isXMLConfig(testFile))
-	    		{
-	    			testConfig = new XMLPropertyListConfiguration(testFile);
-	    		}
-	    		else
-	    		{
-	    			testConfig = new PropertyListConfiguration(testFile);
-	    		}
+	    		testConfig = readTestConfig(testFile);
 	    		envCfg.addProperty("testFile", testFile.toString());
+	    		
 	    	}
 	    	else if (false == helpMode)
 	    	{
@@ -269,6 +264,36 @@ public class Configuration {
 		return cfg;
 	}
 
+	private HierarchicalConfiguration readTestConfig(File testFile) throws ConfigurationException, FileNotFoundException, IOException
+	{
+		HierarchicalConfiguration loadedConf = null;
+		CombinedConfiguration finalConf = null;
+		if (isXMLConfig(testFile))
+		{
+			loadedConf = new XMLPropertyListConfiguration(testFile);
+		}
+		else
+		{
+			loadedConf = new PropertyListConfiguration(testFile);
+		}
+		
+		/*
+		 * Some compatibility magic: Our initial version had very specific uses and according configuration wording.
+		 * We want to be more generic, so we re-route some information in the configs.
+		 */
+		HierarchicalConfiguration groupsConf = (HierarchicalConfiguration) loadedConf.getProperty("groupOntologies");
+		if (null == loadedConf.getProperty("studentOntologies") && (null != groupsConf))
+		{
+			HierarchicalConfiguration cfg = new HierarchicalConfiguration();
+			finalConf = new CombinedConfiguration(new OverrideCombiner());
+			cfg.setProperty("studentOntologies", groupsConf);
+			finalConf.addConfiguration(cfg);
+			finalConf.addConfiguration(loadedConf);
+		}
+		return (null == finalConf) ? loadedConf : finalConf;
+		
+	}
+	
 	private static boolean isXMLConfig(File confFile) throws FileNotFoundException, IOException
 	{
 		FileReader reader = new FileReader(confFile);
