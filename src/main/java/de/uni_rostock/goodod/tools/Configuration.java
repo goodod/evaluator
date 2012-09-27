@@ -224,6 +224,7 @@ public class Configuration {
 	    	{
 	    		File testFile = new File(argList.get(0));
 	    		testConfig = readTestConfig(testFile);
+	    		assert(null != testConfig);
 	    		envCfg.addProperty("testFile", testFile.toString());
 	    		
 	    	}
@@ -266,8 +267,9 @@ public class Configuration {
 
 	private HierarchicalConfiguration readTestConfig(File testFile) throws ConfigurationException, FileNotFoundException, IOException
 	{
+		HierarchicalConfiguration finalConf = null;
+		CombinedConfiguration mergedConf = null;
 		HierarchicalConfiguration loadedConf = null;
-		CombinedConfiguration finalConf = null;
 		if (isXMLConfig(testFile))
 		{
 			loadedConf = new XMLPropertyListConfiguration(testFile);
@@ -281,16 +283,22 @@ public class Configuration {
 		 * Some compatibility magic: Our initial version had very specific uses and according configuration wording.
 		 * We want to be more generic, so we re-route some information in the configs.
 		 */
+		
 		HierarchicalConfiguration groupsConf = (HierarchicalConfiguration) loadedConf.getProperty("groupOntologies");
 		if (null == loadedConf.getProperty("studentOntologies") && (null != groupsConf))
 		{
 			HierarchicalConfiguration cfg = new HierarchicalConfiguration();
-			finalConf = new CombinedConfiguration(new OverrideCombiner());
+			mergedConf = new CombinedConfiguration(new OverrideCombiner());
 			cfg.setProperty("studentOntologies", groupsConf);
-			finalConf.addConfiguration(cfg);
-			finalConf.addConfiguration(loadedConf);
+			mergedConf.addConfiguration(cfg);
+			mergedConf.addConfiguration(loadedConf);
+			finalConf = mergedConf;
 		}
-		return (null == finalConf) ? loadedConf : finalConf;
+		else
+		{
+			finalConf = loadedConf;
+		}
+		return finalConf;
 		
 	}
 	
