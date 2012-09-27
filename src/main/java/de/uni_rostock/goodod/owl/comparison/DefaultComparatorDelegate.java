@@ -20,6 +20,7 @@ package de.uni_rostock.goodod.owl.comparison;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -94,6 +95,29 @@ public class DefaultComparatorDelegate implements ComparatorDelegate {
 			return true;
 		}
 		
+		// If we fall through to here, we check whether we get a matching label
+		// this is important for ontologies which use a naming scheme like BFO_000001…
+		Set<OWLAnnotationAssertionAxiom> aAnnotations = a.getAnnotationAssertionAxioms(iriA);
+		Set<OWLAnnotationAssertionAxiom> bAnnotations = b.getAnnotationAssertionAxioms(iriB);
+		
+		for (OWLAnnotationAssertionAxiom aa : aAnnotations)
+		{
+			if(false == aa.getProperty().isLabel())
+			{
+				continue;
+			}
+			for (OWLAnnotationAssertionAxiom ba : bAnnotations)
+			{
+				if (false == ba.getProperty().isLabel())
+				{
+					continue;
+				}
+				if (true == aa.getValue().equals(ba.getValue()))
+				{
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 }

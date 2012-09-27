@@ -137,7 +137,7 @@ public class OntologyCache {
 	public FutureTask<OWLOntology> getOntologyAtURI(URI theURI) throws OWLOntologyCreationException
 	{
 		int waitCount = 0;
-		while (pendingFutures.get() < threadCount)
+		while (pendingFutures.get() > threadCount)
 		{
 			if (0 == ++waitCount % 8 )
 			{
