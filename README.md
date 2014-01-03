@@ -5,21 +5,18 @@ Copyright (C) 2011--2012 The University of Rostock.
 Installation and Usage Instructions
 -----------------------------------
 * Get a working maven installation to build the evaluator.
-* Install the HermiT reasoner into your maven repository using
-    `mvn install:install-file -DgroupId=com.hermit-reasoner -DartifactId=HermiT
-     -Dversion=1.3.5 -Dpackaging=jar -Dfile=HermiT.jar`
 * Install the [OntoSim package](https://gforge.inria.fr/projects/ontosim/) 
   into your maven repository using
     `mvn install:install-file -DgroupId=org.inrialpes.exmo -DartifactId=OntoSim
-     -Dversion=2.2 -Dpackaging=jar -Dfile=ontosim.jar`
+     -Dversion=2.3 -Dpackaging=jar -Dfile=ontosim.jar`
 * Install the OntoWrap package from the [AlignAPI](http://alignapi.gforge.inria.fr)
   into your maven repository using
-    `mvn install:install-file -DgorupId=org.iniralpes.exmo -DartifactId=OntoWrap
-     -Dversion=4.3 -Dpackaging=jar -Dfile=ontowrap.jar`
+    `mvn install:install-file -DgroupId=org.inrialpes.exmo -DartifactId=OntoWrap
+     -Dversion=4.5 -Dpackaging=jar -Dfile=ontowrap.jar`
 * Install the [secondstring package](http://secondstring.sourceforge.net) into
   your maven repositry using
     `mvn install:install-file -DgroupId=com.wcohen -DartifactId=secondstring
-     -Dversion=SNAPSHOT -Dpackaging=jar -DFile=secondstring.jar`
+     -Dversion=SNAPSHOT -Dpackaging=jar -Dfile=secondstring.jar`
 * Run `mvn package` to build and package the evaluator. The corresponding .jar
   files are placed in `./target/`. The one with the `-eval-assembly` suffix also
   contains all dependencies.
