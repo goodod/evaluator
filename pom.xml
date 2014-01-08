@@ -133,4 +133,13 @@
   	<url>https://oss.sonatype.org/content/groups/public/</url>
   </repository>
   </repositories>
+
+  <distributionManagement>
+	  <repository>
+		  <id>bintray-goodod-Evaluator-evaluator</id>
+		  <name>goodod-Evaluator-evaluator</name>
+		  <url>https://api.bintray.com/maven/goodod/Evaluator/evaluator</url>
+	  </repository>
+  </distributionManagement>
+
 </project>
